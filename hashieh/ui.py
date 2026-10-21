@@ -1666,6 +1666,10 @@ class HashiehApp(Gtk.Application):
 
     def do_startup(self):
         Gtk.Application.do_startup(self)
+        if sys.platform == "darwin":
+            # GTK on macOS lays text out at 72 dpi; use 96 like Linux and Windows so
+            # point sizes (and the note layout built on them) match everywhere.
+            Gtk.Settings.get_default().set_property("gtk-xft-dpi", 96 * 1024)
         shortcuts.migrate_legacy()
         self.store = Store(DB_PATH)
         if self.store.is_empty():
@@ -1793,6 +1797,26 @@ class HashiehApp(Gtk.Application):
         Gtk.Application.do_shutdown(self)
 
     # Self-test: used by CI on every platform to check a build really works ----------------------
+    @staticmethod
+    def _capture_screen(path: Path):
+        """What is really on screen (transparency, docking), where the OS has a tool for it."""
+        import subprocess
+        try:
+            if sys.platform == "darwin":
+                subprocess.run(["screencapture", "-x", str(path)], timeout=20)
+            elif sys.platform == "win32":
+                script = (
+                    "Add-Type -AssemblyName System.Windows.Forms,System.Drawing;"
+                    "$b=[System.Windows.Forms.Screen]::PrimaryScreen.Bounds;"
+                    "$i=New-Object System.Drawing.Bitmap $b.Width,$b.Height;"
+                    "$g=[System.Drawing.Graphics]::FromImage($i);"
+                    "$g.CopyFromScreen($b.Location,[System.Drawing.Point]::Empty,$b.Size);"
+                    f"$i.Save('{path}')")
+                subprocess.run(["powershell", "-NoProfile", "-Command", script], timeout=30,
+                               creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+        except (OSError, subprocess.SubprocessError):
+            pass
+
     def _run_selftest(self):
         import json
         import platform
@@ -1827,6 +1851,7 @@ class HashiehApp(Gtk.Application):
             cr.pop_group_to_source()
             cr.paint()
             surface.write_to_png(str(out / "screenshot.png"))
+            self._capture_screen(out / "screen.png")
 
             icon_theme = Gtk.IconTheme.get_default()
             icons = ["go-previous-symbolic", "system-search-symbolic", "list-add-symbolic",
