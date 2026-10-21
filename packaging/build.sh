@@ -31,7 +31,16 @@ cp -r "$root/hashieh" "$pkg/usr/lib/hashieh/"
 find "$pkg" -name __pycache__ -prune -exec rm -rf {} +
 cat > "$pkg/usr/bin/hashieh" <<'EOF'
 #!/bin/sh
-PYTHONPATH=/usr/lib/hashieh${PYTHONPATH:+:$PYTHONPATH} exec /usr/bin/python3 -m hashieh "$@"
+# python3-gi is built for the distribution's default Python. If /usr/bin/python3 was
+# switched to another version (update-alternatives), fall back to one that has GTK.
+export PYTHONPATH=/usr/lib/hashieh${PYTHONPATH:+:$PYTHONPATH}
+for py in ${HASHIEH_PYTHON:-} /usr/bin/python3 $(ls -r /usr/bin/python3.[0-9]* 2>/dev/null | grep -E '/python3\.[0-9]+$'); do
+    if "$py" -c 'import gi; gi.require_version("Gtk", "3.0"); from gi.repository import Gtk' >/dev/null 2>&1; then
+        exec "$py" -m hashieh "$@"
+    fi
+done
+echo "hashieh: no Python with PyGObject + GTK 3 found (install python3-gi gir1.2-gtk-3.0)." >&2
+exit 1
 EOF
 chmod 755 "$pkg/usr/bin/hashieh"
 sed "s|@EXEC@|hashieh|g" "$root/data/$app_id.desktop.in" > "$pkg/usr/share/applications/$app_id.desktop"

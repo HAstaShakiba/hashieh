@@ -40,7 +40,9 @@ jobs:
           dpkg-deb --info dist/hashieh_*_all.deb
           mkdir -p /tmp/deb && dpkg-deb -x dist/hashieh_*_all.deb /tmp/deb
           desktop-file-validate /tmp/deb/usr/share/applications/*.desktop
-          PYTHONPATH=/tmp/deb/usr/lib/hashieh /usr/bin/python3 -m hashieh --version
+          # Run the packaged launcher itself, pointed at the extracted tree.
+          sed "s#/usr/lib/hashieh#/tmp/deb/usr/lib/hashieh#" /tmp/deb/usr/bin/hashieh > /tmp/hashieh-launcher
+          sh /tmp/hashieh-launcher --version
           (cd dist && sha256sum -c SHA256SUMS)
 
       - uses: actions/upload-artifact@v7
