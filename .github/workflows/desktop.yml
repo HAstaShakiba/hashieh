@@ -30,7 +30,7 @@ jobs:
       - uses: msys2/setup-msys2@v2
         with:
           msystem: UCRT64
-          update: true
+          update: false
           install: zip
           pacboy: >-
             gtk3:p python:p python-gobject:p python-cairo:p pyinstaller:p

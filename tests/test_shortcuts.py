@@ -1,3 +1,4 @@
+import sys
 import unittest
 
 from gi.repository import Gio
@@ -9,6 +10,8 @@ class AcceleratorTests(unittest.TestCase):
     def test_parse_and_same(self):
         self.assertTrue(shortcuts.same("<Super>n", "<Super>N"))
         self.assertTrue(shortcuts.same("<Ctrl>f", "<Control>f"))
+        self.assertEqual(shortcuts.parse("<Primary>n"),
+                         shortcuts.parse("<Meta>n" if sys.platform == "darwin" else "<Control>n"))
         self.assertFalse(shortcuts.same("<Control>f", "<Control><Shift>f"))
         self.assertFalse(shortcuts.same("", "<Control>f"))
 
@@ -20,12 +23,13 @@ class AcceleratorTests(unittest.TestCase):
         self.assertIsNotNone(shortcuts.validate("<Control>"))    # no key
 
     def test_app_conflicts(self):
-        found = shortcuts.find_conflicts("<Control>f", app_shortcuts=dict(shortcuts.DEFAULT_APP))
+        search = shortcuts.DEFAULT_APP["search"]
+        found = shortcuts.find_conflicts(search, app_shortcuts=dict(shortcuts.DEFAULT_APP))
         self.assertTrue(any(c.schema_id == "app" and c.key == "search" for c in found))
         mapping = dict(shortcuts.DEFAULT_APP)
         for c in found:
             if c.schema_id == "app":
-                shortcuts.free(c, "<Control>f", mapping)
+                shortcuts.free(c, search, mapping)
         self.assertEqual(mapping["search"], "")
 
 

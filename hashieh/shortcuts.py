@@ -89,11 +89,17 @@ def launcher() -> str:
     return shutil.which("hashieh") or str(Path(__file__).resolve().parents[1] / "bin" / "hashieh")
 
 
+def expand(accel: str) -> str:
+    """Resolve <Primary> ourselves (Command on macOS, Ctrl elsewhere): GTK can only do
+    it with a display, and the answer must not change between machines."""
+    return accel.replace("<Primary>", "<Meta>" if sys.platform == "darwin" else "<Control>")
+
+
 def parse(accel: str):
     """(lower-case keyval, modifiers) or None."""
     if not accel:
         return None
-    key, mods = Gtk.accelerator_parse(accel)
+    key, mods = Gtk.accelerator_parse(expand(accel))
     if not key:
         return None
     return Gdk.keyval_to_lower(key), int(mods)
@@ -108,7 +114,7 @@ def label(accel: str) -> str:
     parsed = parse(accel)
     if not parsed:
         return "Disabled"
-    key, mods = Gtk.accelerator_parse(accel)
+    key, mods = Gtk.accelerator_parse(expand(accel))
     return Gtk.accelerator_get_label(key, mods)
 
 
@@ -116,12 +122,13 @@ def validate(accel: str) -> Optional[str]:
     """Return an error message, or None if the accelerator is usable."""
     if not accel:
         return None
-    key, mods = Gtk.accelerator_parse(accel)
+    key, mods = Gtk.accelerator_parse(expand(accel))
     if not key:
         return f"“{accel}” is not a valid shortcut. Example: <Super>n or <Control><Alt>s"
     name = Gdk.keyval_name(key) or ""
     if not (mods & (Gdk.ModifierType.CONTROL_MASK | Gdk.ModifierType.MOD1_MASK |
-                    Gdk.ModifierType.SUPER_MASK | Gdk.ModifierType.MOD4_MASK)) and name not in _BARE_OK:
+                    Gdk.ModifierType.SUPER_MASK | Gdk.ModifierType.MOD4_MASK |
+                    Gdk.ModifierType.META_MASK)) and name not in _BARE_OK:
         return "Use Ctrl, Alt or Super with the key, so normal typing isn't blocked."
     return None
 

@@ -42,6 +42,7 @@ def create(callback: Callable[[str], None]):
 def _parse(accel: str) -> Optional[Tuple[int, int]]:
     if not accel:
         return None
+    accel = accel.replace("<Primary>", "<Meta>" if sys.platform == "darwin" else "<Control>")
     key, mods = Gtk.accelerator_parse(accel)
     if not key:
         return None
