@@ -14,7 +14,7 @@ jobs:
         os: [ubuntu-22.04, ubuntu-24.04]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install system dependencies
         run: |
@@ -23,7 +23,7 @@ jobs:
           # global-shortcut tests run (against an in-memory GSettings backend).
           sudo apt-get install -y --no-install-recommends \
             python3-gi python3-gi-cairo python3-cairo gir1.2-gtk-3.0 \
-            gnome-settings-daemon-common gsettings-desktop-schemas desktop-file-utils
+            gnome-settings-daemon-common gnome-shell-common gsettings-desktop-schemas desktop-file-utils
 
       - name: Compile
         run: /usr/bin/python3 -m compileall -q hashieh tests
@@ -43,7 +43,7 @@ jobs:
           PYTHONPATH=/tmp/deb/usr/lib/hashieh /usr/bin/python3 -m hashieh --version
           (cd dist && sha256sum -c SHA256SUMS)
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: matrix.os == 'ubuntu-22.04'
         with:
           name: packages
