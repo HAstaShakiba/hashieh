@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>حاشیه — جایگزین رایگان SideNotes برای ویندوز، لینوکس و مک</title>
+  <meta name="description" content="حاشیه یک پنل یادداشت رایگان و متن‌باز برای ویندوز، لینوکس و مک است؛ جایگزین SideNotes با پوشه، Markdown، چک‌لیست و کلید میانبر سراسری.">
+  <meta name="keywords" content="جایگزین SideNotes, SideNotes ویندوز, SideNotes لینوکس, برنامه یادداشت رایگان, یادداشت کناری, استیکی نوت, متن‌باز">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://hastashakiba.github.io/hashieh/fa/">
+  <link rel="alternate" hreflang="en" href="https://hastashakiba.github.io/hashieh/">
+  <link rel="alternate" hreflang="fa" href="https://hastashakiba.github.io/hashieh/fa/">
+  <link rel="alternate" hreflang="x-default" href="https://hastashakiba.github.io/hashieh/">
+  <meta name="theme-color" content="#3b6fd8">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="حاشیه">
+  <meta property="og:locale" content="fa_IR">
+  <meta property="og:locale:alternate" content="en_US">
+  <meta property="og:url" content="https://hastashakiba.github.io/hashieh/fa/">
+  <meta property="og:title" content="حاشیه — جایگزین رایگان SideNotes برای ویندوز، لینوکس و مک">
+  <meta property="og:description" content="پنل یادداشت رایگان و متن‌باز کنار صفحه‌ی نمایش؛ با پوشه، Markdown، چک‌لیست، میانبر سراسری و انتقال یادداشت از SideNotes.">
+  <meta property="og:image" content="https://hastashakiba.github.io/hashieh/screenshot.png">
+  <meta property="og:image:alt" content="پنل حاشیه با کارت‌های یادداشت رنگی در حالت روشن و تیره">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="حاشیه — جایگزین رایگان SideNotes برای ویندوز، لینوکس و مک">
+  <meta name="twitter:description" content="پنل یادداشت رایگان و متن‌باز کنار صفحه‌ی نمایش.">
+  <meta name="twitter:image" content="https://hastashakiba.github.io/hashieh/screenshot.png">
+  <link rel="sitemap" type="application/xml" href="../sitemap.xml">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "SoftwareApplication", "inLanguage": "fa", "name": "حاشیه", "alternateName": "Hashieh", "description": "حاشیه یک پنل یادداشت رایگان و متن‌باز برای ویندوز، لینوکس و مک است؛ جایگزین SideNotes با پوشه، Markdown، چک‌لیست و کلید میانبر سراسری.", "applicationCategory": "ProductivityApplication", "applicationSubCategory": "یادداشت‌برداری", "operatingSystem": "Windows 10, Windows 11, macOS 11+, Linux (Ubuntu, Debian)", "softwareVersion": "0.2.0", "license": "https://opensource.org/licenses/MIT", "isAccessibleForFree": true, "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "downloadUrl": "https://github.com/HAstaShakiba/hashieh/releases/latest", "url": "https://hastashakiba.github.io/hashieh/fa/", "image": "https://hastashakiba.github.io/hashieh/screenshot.png", "screenshot": "https://hastashakiba.github.io/hashieh/screenshot.png", "codeRepository": "https://github.com/HAstaShakiba/hashieh", "author": {"@type": "Person", "name": "HAstaShakiba", "url": "https://github.com/HAstaShakiba"}, "keywords": "جایگزین SideNotes، SideNotes ویندوز، SideNotes لینوکس، برنامه یادداشت رایگان، یادداشت کناری، استیکی نوت، یادداشت Markdown"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "inLanguage": "fa", "mainEntity": [{"@type": "Question", "name": "آیا SideNotes برای ویندوز یا لینوکس وجود دارد؟", "acceptedAnswer": {"@type": "Answer", "text": "خود SideNotes فقط برای مک ساخته شده است. حاشیه یک پنل یادداشت رایگان و متن‌باز با همین ایده برای ویندوز، لینوکس و مک است: یادداشت‌ها در پوشه‌ها کنار صفحه‌ی نمایش، با یک کلید میانبر."}}, {"@type": "Question", "name": "حاشیه رایگان است؟", "acceptedAnswer": {"@type": "Answer", "text": "بله. حاشیه کاملاً رایگان و متن‌باز (با مجوز MIT) است؛ بدون نسخه‌ی پولی، حساب کاربری یا تبلیغ."}}, {"@type": "Question", "name": "می‌توانم یادداشت‌هایم را از SideNotes منتقل کنم؟", "acceptedAnswer": {"@type": "Answer", "text": "بله. حاشیه داده‌های SideNotes (فایل SideNotes.sqlite، data.json یا ‎.snbackup) را با پوشه‌ها، رنگ یادداشت‌ها، چک‌لیست‌ها و تصویرها وارد می‌کند و تم‌های ‎.sntheme را هم پشتیبانی می‌کند."}}, {"@type": "Question", "name": "پنل یادداشت را چطور باز کنم؟", "acceptedAnswer": {"@type": "Answer", "text": "در ویندوز Ctrl+Alt+N، در مک Cmd+Ctrl+N و در لینوکس Super+Ctrl+N را بزنید، یا روی دستگیره‌ی کوچک کنار صفحه کلیک کنید. کلید میانبر را از تنظیمات می‌توانید عوض کنید."}}, {"@type": "Question", "name": "حاشیه روی چه سیستم‌عامل‌هایی کار می‌کند؟", "acceptedAnswer": {"@type": "Answer", "text": "ویندوز ۱۰ و ۱۱ (۶۴ بیتی)، مک ۱۱ به بعد با پردازنده‌ی Apple Silicon، و لینوکس با میزکار GNOME؛ برای اوبونتو و دبیان بسته‌ی ‎.deb هم دارد."}}, {"@type": "Question", "name": "با iCloud همگام‌سازی می‌شود؟", "acceptedAnswer": {"@type": "Answer", "text": "نه. یادداشت‌ها به‌صورت محلی در یک فایل SQLite روی کامپیوتر خودتان ذخیره می‌شوند. می‌توانید از همه‌چیز خروجی JSON بگیرید و یادداشت‌های مک را با وارد کردن پایگاه داده‌ی SideNotes منتقل کنید."}}]}</script>
+  <link rel="icon" href="../icon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;700;800&display=swap">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <div class="wrap">
+    <nav>
+      <a class="brand" href="./"><img src="../icon.svg" alt="">حاشیه</a>
+      <div class="nav-links">
+        <a class="hide-sm" href="#download">دانلود</a>
+        <a class="hide-sm" href="#features">امکانات</a>
+        <a class="hide-sm" href="#install">نصب</a>
+        <a class="hide-sm" href="#faq">پرسش‌ها</a>
+        <a href="https://github.com/HAstaShakiba/hashieh">GitHub</a>
+        <a class="lang-switch" href="../" hreflang="en" lang="en">English</a>
+      </div>
+    </nav>
+
+    <header class="hero">
+      <div>
+        <span class="eyebrow">رایگان و متن‌باز · لینوکس · ویندوز · مک</span>
+        <h1>حاشیه<span class="fa" lang="en">Hashieh</span></h1>
+        <p class="lead">پنل یادداشتی رایگان و متن‌باز که کنار صفحه‌ی نمایش شما می‌نشیند؛ روی ویندوز، لینوکس و مک.
+          فکرهایتان را یادداشت کنید، کارها را تیک بزنید و متن‌های پرکاربرد را همیشه یک کلید میانبر دورتر نگه دارید.
+          مثل SideNotes کار می‌کند و یادداشت‌های SideNotes را هم وارد می‌کند.</p>
+        <div class="actions">
+          <a class="btn btn-primary" id="download" href="https://github.com/HAstaShakiba/hashieh/releases/latest">
+            ⬇ <span id="download-label">دانلود</span></a>
+          <a class="btn btn-ghost" href="https://github.com/HAstaShakiba/hashieh">مشاهده در GitHub</a>
+        </div>
+        <p class="meta"><span id="release-meta">لینوکس، ویندوز و مک · مجوز MIT</span>
+          · <a href="https://github.com/HAstaShakiba/hashieh/releases/latest">همه‌ی دانلودها</a></p>
+      </div>
+      <div class="shot">
+        <img src="../screenshot.png" width="570" height="675" fetchpriority="high"
+             alt="پنل حاشیه با کارت‌های یادداشت رنگی، چک‌لیست، رنگ‌ها و Markdown در حالت روشن و تیره">
+      </div>
+    </header>
+  </div>
+
+  <section id="download">
+    <div class="wrap">
+      <h2>دانلود</h2>
+      <p class="section-lead">رایگان برای ویندوز، مک و لینوکس. نسخه‌ی <span class="dl-version">0.2.0</span> ·
+        <a href="https://github.com/HAstaShakiba/hashieh/releases/latest">یادداشت انتشار و checksumها</a></p>
+      <div class="grid">
+        <div class="card dl" data-os="windows">
+          <h3>ویندوز ۱۰ / ۱۱</h3>
+          <a class="btn btn-primary" data-suffix="-windows-x64-setup.exe" href="https://github.com/HAstaShakiba/hashieh/releases/download/v0.2.0/Hashieh-0.2.0-windows-x64-setup.exe">⬇ فایل نصب (۶۴ بیتی)</a>
+          <a class="dl-alt" data-suffix="-windows-x64.zip" href="https://github.com/HAstaShakiba/hashieh/releases/download/v0.2.0/Hashieh-0.2.0-windows-x64.zip">نسخه‌ی پرتابل (zip)</a>
+          <p class="dl-name"><code data-name-for="-windows-x64-setup.exe">Hashieh-0.2.0-windows-x64-setup.exe</code></p>
+        </div>
+        <div class="card dl" data-os="mac">
+          <h3>مک ۱۱ به بعد</h3>
+          <a class="btn btn-primary" data-suffix="-macos-arm64.dmg" href="https://github.com/HAstaShakiba/hashieh/releases/download/v0.2.0/Hashieh-0.2.0-macos-arm64.dmg">⬇ فایل dmg برای Apple Silicon</a>
+          <p class="dl-name"><code data-name-for="-macos-arm64.dmg">Hashieh-0.2.0-macos-arm64.dmg</code></p>
+        </div>
+        <div class="card dl" data-os="linux">
+          <h3>اوبونتو / دبیان</h3>
+          <a class="btn btn-primary" data-suffix="_all.deb" href="https://github.com/HAstaShakiba/hashieh/releases/download/v0.2.0/hashieh_0.2.0_all.deb">⬇ بسته‌ی deb</a>
+          <a class="dl-alt" data-suffix=".tar.gz" href="https://github.com/HAstaShakiba/hashieh/releases/download/v0.2.0/hashieh-0.2.0.tar.gz">کد منبع (tar.gz)</a>
+          <p class="dl-name"><code data-name-for="_all.deb">hashieh_0.2.0_all.deb</code></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="features">
+    <div class="wrap">
+      <h2>هر چیزی که یک یادداشت کناری لازم دارد</h2>
+      <p class="section-lead">یادداشت‌ها همان‌طور که خوانده می‌شوند نمایش داده می‌شوند؛ هر وقت خواستید متن را ویرایش
+        کنید، رویش کلیک کنید.</p>
+      <div class="grid">
+        <div class="card"><div class="icon">▏</div><h3>چسبیده به لبه‌ی صفحه</h3>
+          <p>پنلی شفاف در لبه‌ی چپ یا راست صفحه، بالای پنجره‌های دیگر. وقتی پنهان است، یک دستگیره‌ی کوچک
+            برش می‌گرداند.</p></div>
+        <div class="card"><div class="icon">◯</div><h3>چک‌لیست با یک کلیک</h3>
+          <p>بنویسید <code>[ ]</code> تا به دایره‌ای قابل کلیک تبدیل شود. کارهای انجام‌شده با تیک سر جایشان
+            می‌مانند.</p></div>
+        <div class="card"><div class="icon">✱</div><h3>Markdown سبک</h3>
+          <p>تیتر، پررنگ، کج، خط‌خورده، هایلایت، کد، نقل‌قول و فهرست؛ بدون اینکه از متن ساده بیرون بروید.</p></div>
+        <div class="card"><div class="icon">●</div><h3>رنگ‌ها و پوشه‌ها</h3>
+          <p>شش رنگ یادداشت، یادداشت‌ها و پوشه‌های سنجاق‌شده، و جست‌وجو در همه‌ی نوشته‌ها.</p></div>
+        <div class="card"><div class="icon">▣</div><h3>تصویر و فایل</h3>
+          <p>تصویر را paste کنید یا روی یادداشت بیندازید تا ضمیمه شود. فایل را بیندازید تا لینکش در یادداشت
+            بماند.</p></div>
+        <div class="card"><div class="icon">◐</div><h3>تم‌ها</h3>
+          <p>تم روشن و تیره‌ی داخلی. تم‌های <code>.sntheme</code> نسخه‌ی SideNotes خودتان را هم می‌توانید نصب
+            کنید.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="install">
+    <div class="wrap">
+      <h2>نصب</h2>
+      <p class="section-lead">فایل مخصوص سیستم‌تان را از
+        <a href="https://github.com/HAstaShakiba/hashieh/releases/latest">آخرین نسخه</a> بگیرید. حاشیه در اولین
+        اجرا «اجرا هنگام ورود» را روشن می‌کند و اگر کلید میانبر آزاد باشد، آن را برای باز و بسته کردن پنل
+        تنظیم می‌کند.</p>
+      <div class="grid" style="margin-bottom:16px">
+        <div class="card">
+          <h3>ویندوز ۱۰ / ۱۱</h3>
+          <p>فایل <code>Hashieh-…-windows-x64-setup.exe</code> را اجرا کنید؛ برای کاربر فعلی و بدون نیاز به
+            دسترسی ادمین نصب می‌شود. میانبر: <kbd>Ctrl</kbd> <kbd>Alt</kbd> <kbd>N</kbd></p>
+          <p style="margin-top:8px">فایل هنوز امضای دیجیتال ندارد؛ در پیام SmartScreen روی <em>More info</em> و
+            بعد <em>Run anyway</em> بزنید.</p>
+        </div>
+        <div class="card">
+          <h3>مک ۱۱ به بعد (Apple Silicon)</h3>
+          <p>فایل <code>Hashieh-…-macos-arm64.dmg</code> را باز کنید و حاشیه را به Applications بکشید.
+            میانبر: <kbd>⌘</kbd> <kbd>Ctrl</kbd> <kbd>N</kbd></p>
+          <p style="margin-top:8px">هنوز notarize نشده؛ از <em>System Settings ▸ Privacy &amp; Security</em> گزینه‌ی
+            <em>Open Anyway</em> را بزنید.</p>
+        </div>
+        <div class="card">
+          <h3>لینوکس</h3>
+          <p>برای میزکار GNOME ساخته شده (X11 و Wayland). میانبر: <kbd>Super</kbd> <kbd>Ctrl</kbd> <kbd>N</kbd>.
+            به پایتون ۳٫۸ به بالا و GTK 3 نیاز دارد که اوبونتو از قبل دارد.</p>
+        </div>
+      </div>
+      <div class="steps">
+        <div class="card">
+          <h3>بسته‌ی اوبونتو / دبیان</h3>
+          <p>فایل <code>.deb</code> را از آخرین نسخه دانلود کنید و بعد:</p>
+          <pre><code>sudo apt install ./hashieh_*_all.deb</code></pre>
+          <p style="margin-top:10px">در اولین اجرا «اجرا هنگام ورود» روشن می‌شود و اگر
+            <kbd>Super</kbd> <kbd>Ctrl</kbd> <kbd>N</kbd> آزاد باشد تنظیم می‌شود. هر دو را از ⚙ می‌توانید عوض کنید.</p>
+        </div>
+        <div class="card">
+          <h3>نصب از کد منبع</h3>
+          <p>در <code>~/.local</code> نصب می‌شود، با همان تنظیمات اولین اجرا:</p>
+          <pre><code>git clone https://github.com/HAstaShakiba/hashieh.git
+cd hashieh
+./install.sh</code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="shortcuts">
+    <div class="wrap">
+      <h2>کار با صفحه‌کلید</h2>
+      <p class="section-lead">همه‌ی میانبرها را از ⚙ ▸ Keyboard shortcuts می‌توانید عوض کنید. اگر کلیدی قبلاً
+        گرفته شده باشد، حاشیه خبرتان می‌کند.</p>
+      <table>
+        <tr><td><kbd>Super</kbd> <kbd>Ctrl</kbd> <kbd>N</kbd></td><td>باز و بسته کردن پنل از هر جای سیستم</td></tr>
+        <tr><td><kbd>Ctrl</kbd> <kbd>N</kbd></td><td>یادداشت (یا پوشه‌ی) جدید</td></tr>
+        <tr><td><kbd>Ctrl</kbd> <kbd>F</kbd></td><td>جست‌وجو در همه‌ی یادداشت‌ها</td></tr>
+        <tr><td><kbd>Esc</kbd></td><td>پایان ویرایش، برگشت، پنهان کردن</td></tr>
+        <tr><td><kbd>Ctrl</kbd> <kbd>=</kbd> / <kbd>Ctrl</kbd> <kbd>-</kbd></td><td>بزرگ / کوچک کردن متن</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <section id="sidenotes">
+    <div class="wrap">
+      <h2>از SideNotes می‌آیید؟</h2>
+      <p class="section-lead">حاشیه داده‌های SideNotes را می‌خواند؛ پس یادداشت‌ها، رنگ‌ها، چک‌لیست‌ها و
+        تصویرهایتان با شما می‌آیند.</p>
+      <div class="card">
+        <ol class="flow">
+          <li>روی مک، SideNotes را ببندید و فایل <code>SideNotes.sqlite</code> را (همراه فایل‌های <code>-wal</code> و
+            <code>-shm</code>) یا یک فایل <code>.snbackup</code> از تنظیمات Backups کپی کنید.</li>
+          <li>روی سیستم جدید دستور <code>hashieh import /path/to/SideNotes.sqlite</code> را اجرا کنید، یا از منوی
+            ⋯ ▸ Import SideNotes data استفاده کنید.</li>
+          <li>اختیاری: با <code>hashieh themes install /path/to/SideNotes.app</code> تم‌هایتان را هم بیاورید.</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section id="alternative">
+    <div class="wrap">
+      <h2>جایگزین رایگان SideNotes برای ویندوز و لینوکس</h2>
+      <p class="section-lead">SideNotes یک نوار یادداشت محبوب برای مک است. حاشیه همین ایده را به
+        <strong>ویندوز</strong> و <strong>لینوکس</strong> می‌آورد و روی مک هم اجرا می‌شود: پنلی که از لبه‌ی صفحه
+        باز می‌شود، با پوشه، یادداشت رنگی، Markdown، چک‌لیست و تصویر. رایگان و متن‌باز است؛ بدون حساب کاربری و
+        بدون اشتراک.</p>
+      <div class="grid">
+        <div class="card"><h3>همان روش کار</h3><p>پوشه‌های یادداشت در لبه‌ی صفحه، یک میانبر سراسری برای باز و بسته
+          کردن، و ذخیره‌ی خودکار هنگام تایپ.</p></div>
+        <div class="card"><h3>یادداشت‌هایتان همراهتان</h3><p>داده‌ها و تم‌های SideNotes را وارد کنید و هر وقت خواستید
+          از همه‌چیز خروجی JSON بگیرید.</p></div>
+        <div class="card"><h3>همیشه رایگان</h3><p>با مجوز MIT و کد منبع در GitHub. بدون حساب کاربری و بدون ردیابی؛
+          یادداشت‌ها روی کامپیوتر خودتان می‌مانند.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq">
+    <div class="wrap">
+      <h2>پرسش‌های رایج</h2>
+      <details class="faq" open>
+        <summary><h3>آیا SideNotes برای ویندوز یا لینوکس وجود دارد؟</h3></summary>
+        <p>خود SideNotes فقط برای مک ساخته شده است. حاشیه یک پنل یادداشت رایگان و متن‌باز با همین ایده برای ویندوز، لینوکس و مک است: یادداشت‌ها در پوشه‌ها کنار صفحه‌ی نمایش، با یک کلید میانبر.</p>
+      </details>
+      <details class="faq">
+        <summary><h3>حاشیه رایگان است؟</h3></summary>
+        <p>بله. حاشیه کاملاً رایگان و متن‌باز (با مجوز MIT) است؛ بدون نسخه‌ی پولی، حساب کاربری یا تبلیغ.</p>
+      </details>
+      <details class="faq">
+        <summary><h3>می‌توانم یادداشت‌هایم را از SideNotes منتقل کنم؟</h3></summary>
+        <p>بله. حاشیه داده‌های SideNotes (فایل SideNotes.sqlite، data.json یا ‎.snbackup) را با پوشه‌ها، رنگ یادداشت‌ها، چک‌لیست‌ها و تصویرها وارد می‌کند و تم‌های ‎.sntheme را هم پشتیبانی می‌کند.</p>
+      </details>
+      <details class="faq">
+        <summary><h3>پنل یادداشت را چطور باز کنم؟</h3></summary>
+        <p>در ویندوز Ctrl+Alt+N، در مک Cmd+Ctrl+N و در لینوکس Super+Ctrl+N را بزنید، یا روی دستگیره‌ی کوچک کنار صفحه کلیک کنید. کلید میانبر را از تنظیمات می‌توانید عوض کنید.</p>
+      </details>
+      <details class="faq">
+        <summary><h3>حاشیه روی چه سیستم‌عامل‌هایی کار می‌کند؟</h3></summary>
+        <p>ویندوز ۱۰ و ۱۱ (۶۴ بیتی)، مک ۱۱ به بعد با پردازنده‌ی Apple Silicon، و لینوکس با میزکار GNOME؛ برای اوبونتو و دبیان بسته‌ی ‎.deb هم دارد.</p>
+      </details>
+      <details class="faq">
+        <summary><h3>با iCloud همگام‌سازی می‌شود؟</h3></summary>
+        <p>نه. یادداشت‌ها به‌صورت محلی در یک فایل SQLite روی کامپیوتر خودتان ذخیره می‌شوند. می‌توانید از همه‌چیز خروجی JSON بگیرید و یادداشت‌های مک را با وارد کردن پایگاه داده‌ی SideNotes منتقل کنید.</p>
+      </details>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <span>حاشیه یک پروژه‌ی مستقل و غیررسمی است. SideNotes علامت تجاری Apptorium است و حاشیه هیچ وابستگی یا
+        تأییدی از Apptorium ندارد.</span>
+      <span>مجوز MIT · <a href="https://github.com/HAstaShakiba/hashieh">کد منبع در GitHub</a></span>
+    </div>
+  </footer>
+
+  <script src="../main.js" defer></script>
+</body>
+</html>

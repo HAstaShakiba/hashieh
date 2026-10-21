@@ -1,8 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://hastashakiba.github.io/hashieh/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://hastashakiba.github.io/hashieh/"/>
+    <xhtml:link rel="alternate" hreflang="fa" href="https://hastashakiba.github.io/hashieh/fa/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://hastashakiba.github.io/hashieh/"/>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://hastashakiba.github.io/hashieh/fa/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://hastashakiba.github.io/hashieh/"/>
+    <xhtml:link rel="alternate" hreflang="fa" href="https://hastashakiba.github.io/hashieh/fa/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://hastashakiba.github.io/hashieh/"/>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
   </url>
 </urlset>

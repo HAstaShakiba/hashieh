@@ -8,6 +8,11 @@
   <meta name="keywords" content="SideNotes alternative, SideNotes for Windows, SideNotes for Linux, free notes app, sticky notes, side panel notes, markdown notes, open source">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://hastashakiba.github.io/hashieh/">
+  <link rel="alternate" hreflang="en" href="https://hastashakiba.github.io/hashieh/">
+  <link rel="alternate" hreflang="fa" href="https://hastashakiba.github.io/hashieh/fa/">
+  <link rel="alternate" hreflang="x-default" href="https://hastashakiba.github.io/hashieh/">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:locale:alternate" content="fa_IR">
   <meta name="theme-color" content="#3b6fd8">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Hashieh">
@@ -24,153 +29,7 @@
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "SoftwareApplication", "name": "Hashieh", "alternateName": "حاشیه", "description": "Free, open-source sticky notes side panel for Windows, Linux and macOS: a SideNotes alternative with folders, Markdown, tasks and a global shortcut.", "applicationCategory": "ProductivityApplication", "applicationSubCategory": "Note-taking", "operatingSystem": "Windows 10, Windows 11, macOS 11+, Linux (Ubuntu, Debian)", "softwareVersion": "0.2.0", "license": "https://opensource.org/licenses/MIT", "isAccessibleForFree": true, "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "downloadUrl": "https://github.com/HAstaShakiba/hashieh/releases/latest", "url": "https://hastashakiba.github.io/hashieh/", "image": "https://hastashakiba.github.io/hashieh/screenshot.png", "screenshot": "https://hastashakiba.github.io/hashieh/screenshot.png", "codeRepository": "https://github.com/HAstaShakiba/hashieh", "author": {"@type": "Person", "name": "HAstaShakiba", "url": "https://github.com/HAstaShakiba"}, "keywords": "SideNotes alternative, SideNotes for Windows, SideNotes for Linux, free notes app, sticky notes, side panel notes, markdown notes, desktop notes"}</script>
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Is there a SideNotes app for Windows or Linux?", "acceptedAnswer": {"@type": "Answer", "text": "SideNotes itself is only available for macOS. Hashieh is a free, open-source notes panel in the same spirit for Windows, Linux and macOS: notes in folders on the edge of your screen, opened with one shortcut."}}, {"@type": "Question", "name": "Is Hashieh free?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Hashieh is completely free and open source under the MIT license. There are no paid tiers, accounts or ads."}}, {"@type": "Question", "name": "Can I import my notes from SideNotes?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Hashieh reads SideNotes data (SideNotes.sqlite, data.json or a .snbackup), including folders, note colors, tasks and pictures, and it can use SideNotes .sntheme themes."}}, {"@type": "Question", "name": "How do I open the notes panel?", "acceptedAnswer": {"@type": "Answer", "text": "Press Ctrl+Alt+N on Windows, Cmd+Ctrl+N on macOS or Super+Ctrl+N on Linux, or click the small handle on the screen edge. You can change the shortcut in the settings."}}, {"@type": "Question", "name": "Which systems does Hashieh support?", "acceptedAnswer": {"@type": "Answer", "text": "Windows 10 and 11 (x64), macOS 11 or later on Apple Silicon, and Linux with GNOME, with a .deb package for Ubuntu and Debian."}}, {"@type": "Question", "name": "Does Hashieh sync with iCloud?", "acceptedAnswer": {"@type": "Answer", "text": "No. Notes are stored locally in one SQLite file. You can export to JSON, and you can move notes from a Mac by importing the SideNotes database."}}]}</script>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <style>
-    :root {
-      --bg: #f4f6fb;
-      --bg-grad: #e7edf8;
-      --surface: #ffffff;
-      --text: #1d2330;
-      --muted: #5d6676;
-      --accent: #3b6fd8;
-      --accent-ink: #ffffff;
-      --accent-soft: #e4ecfb;
-      --gold: #ffd25a;
-      --border: #dfe4ee;
-      --code-bg: #eef2f9;
-      --shadow: 0 10px 30px rgba(28, 46, 89, 0.10);
-    }
-    @media (prefers-color-scheme: dark) {
-      :root:not([data-theme="light"]) {
-        --bg: #12151b;
-        --bg-grad: #182030;
-        --surface: #1c212b;
-        --text: #e6eaf2;
-        --muted: #9aa4b5;
-        --accent: #7aa2f7;
-        --accent-ink: #0f1422;
-        --accent-soft: #233150;
-        --border: #2b3240;
-        --code-bg: #161b24;
-        --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
-      }
-    }
-    :root[data-theme="dark"] {
-      --bg: #12151b;
-      --bg-grad: #182030;
-      --surface: #1c212b;
-      --text: #e6eaf2;
-      --muted: #9aa4b5;
-      --accent: #7aa2f7;
-      --accent-ink: #0f1422;
-      --accent-soft: #233150;
-      --border: #2b3240;
-      --code-bg: #161b24;
-      --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
-    }
-
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
-    body {
-      margin: 0;
-      font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Ubuntu, Cantarell, "Noto Sans", sans-serif;
-      color: var(--text);
-      background: linear-gradient(180deg, var(--bg-grad), var(--bg) 520px) var(--bg);
-    }
-    a { color: var(--accent); }
-    .wrap { max-width: 1040px; margin: 0 auto; padding: 0 20px; }
-
-    nav { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; }
-    .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 19px;
-             color: var(--text); text-decoration: none; }
-    .brand img { width: 32px; height: 32px; }
-    .nav-links { display: flex; gap: 18px; align-items: center; }
-    .nav-links a { color: var(--muted); text-decoration: none; font-weight: 600; font-size: 15px; }
-    .nav-links a:hover { color: var(--text); }
-
-    .hero { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 48px; align-items: center;
-            padding: 36px 0 64px; }
-    .eyebrow { display: inline-block; font-size: 13px; font-weight: 700; letter-spacing: .02em;
-               color: var(--accent); background: var(--accent-soft); padding: 4px 10px;
-               border-radius: 999px; }
-    h1 { font-size: clamp(36px, 6vw, 56px); line-height: 1.08; margin: 16px 0 12px; letter-spacing: -0.02em; }
-    h1 .fa { font-weight: 700; color: var(--muted); font-size: .55em; margin-inline-start: 10px; }
-    .lead { font-size: 19px; color: var(--muted); margin: 0 0 28px; max-width: 34em; }
-    .actions { display: flex; flex-wrap: wrap; gap: 12px; }
-    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; border-radius: 12px;
-           font-weight: 700; text-decoration: none; border: 1px solid transparent; }
-    .btn-primary { background: var(--accent); color: var(--accent-ink); box-shadow: var(--shadow); }
-    .btn-primary:hover { filter: brightness(1.05); }
-    .btn-ghost { background: var(--surface); color: var(--text); border-color: var(--border); }
-    .btn-ghost:hover { border-color: var(--accent); }
-    .meta { margin-top: 14px; font-size: 14px; color: var(--muted); }
-
-    .shot { justify-self: center; position: relative; }
-    .shot img { width: 100%; max-width: 440px; border-radius: 22px; box-shadow: var(--shadow);
-                display: block; }
-    .shot::before { content: ""; position: absolute; inset: 8% -6% -4% 12%; background: var(--gold);
-                    opacity: .35; filter: blur(48px); border-radius: 40px; z-index: -1; }
-
-    section { padding: 56px 0; }
-    h2 { font-size: 30px; margin: 0 0 8px; letter-spacing: -0.01em; }
-    .section-lead { color: var(--muted); margin: 0 0 28px; max-width: 40em; }
-
-    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px;
-            padding: 20px; }
-    .card h3 { margin: 10px 0 6px; font-size: 17px; }
-    .card p { margin: 0; color: var(--muted); font-size: 15px; }
-    .icon { width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center;
-            background: var(--accent-soft); color: var(--accent); font-size: 19px; }
-
-    .steps { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
-    pre { margin: 10px 0 0; background: var(--code-bg); border: 1px solid var(--border); border-radius: 12px;
-          padding: 14px 72px 14px 16px; overflow-x: auto; font-size: 14px; position: relative; }
-    code { font-family: ui-monospace, "Ubuntu Mono", "DejaVu Sans Mono", monospace; }
-    p code, td code, li code { background: var(--code-bg); padding: 1px 6px; border-radius: 6px; font-size: .92em; }
-    .copy { position: absolute; top: 8px; right: 8px; border: 1px solid var(--border); background: var(--surface);
-            color: var(--muted); border-radius: 8px; font: 600 12px system-ui, sans-serif; padding: 4px 8px;
-            cursor: pointer; }
-    .copy:hover { color: var(--text); }
-
-    table { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--border);
-            border-radius: 14px; overflow: hidden; }
-    td { padding: 11px 16px; border-top: 1px solid var(--border); }
-    tr:first-child td { border-top: none; }
-    td:first-child { width: 38%; white-space: nowrap; }
-    kbd { font: 600 13px ui-monospace, monospace; background: var(--code-bg); border: 1px solid var(--border);
-          border-bottom-width: 2px; border-radius: 6px; padding: 1px 6px; }
-
-    ol.flow { padding-left: 20px; margin: 0; }
-    ol.flow li { margin: 0 0 10px; }
-
-    .card.dl { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
-    .card.dl h3 { margin: 0; }
-    .card.dl.current { border-color: var(--accent); box-shadow: var(--shadow); }
-    .dl-alt { font-weight: 600; font-size: 14px; }
-    .dl-name { margin: 0; font-size: 13px; }
-    details.faq { background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
-                  padding: 4px 18px; margin: 0 0 10px; }
-    details.faq summary { cursor: pointer; list-style: none; }
-    details.faq summary::-webkit-details-marker { display: none; }
-    details.faq summary h3 { display: inline; font-size: 17px; margin: 0; line-height: 3; }
-    details.faq summary::before { content: "＋"; color: var(--accent); margin-inline-end: 10px; font-weight: 700; }
-    details.faq[open] summary::before { content: "－"; }
-    details.faq p { margin: 0 0 14px; color: var(--muted); }
-    #fa { font-family: Vazirmatn, Tahoma, system-ui, sans-serif; }
-    footer { padding: 36px 0 48px; color: var(--muted); font-size: 14px; border-top: 1px solid var(--border); }
-    footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
-
-    @media (max-width: 860px) {
-      .hero { grid-template-columns: 1fr; gap: 32px; padding-top: 16px; }
-      .grid { grid-template-columns: 1fr 1fr; }
-      .steps { grid-template-columns: 1fr; }
-    }
-    @media (max-width: 560px) {
-      .grid { grid-template-columns: 1fr; }
-      .nav-links a.hide-sm { display: none; }
-      td:first-child { white-space: normal; }
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="wrap">
@@ -182,6 +41,7 @@
         <a class="hide-sm" href="#install">Install</a>
         <a class="hide-sm" href="#faq">FAQ</a>
         <a href="https://github.com/HAstaShakiba/hashieh">GitHub</a>
+        <a class="lang-switch" href="fa/" hreflang="fa" lang="fa">فارسی</a>
       </div>
     </nav>
 
@@ -384,17 +244,6 @@ cd hashieh
     </div>
   </section>
 
-  <section id="fa" lang="fa" dir="rtl">
-    <div class="wrap">
-      <h2>حاشیه؛ جایگزین رایگان SideNotes برای ویندوز و لینوکس</h2>
-      <p class="section-lead">حاشیه یک برنامه‌ی یادداشت رایگان و متن‌باز است که مثل SideNotes در کنار صفحه‌ی نمایش
-        قرار می‌گیرد و روی ویندوز، لینوکس و مک کار می‌کند. یادداشت‌ها را در پوشه‌ها با رنگ‌بندی، Markdown،
-        چک‌لیست و تصویر نگه دارید و با یک کلید میانبر باز و بسته‌اش کنید. یادداشت‌ها و تم‌های SideNotes را هم
-        می‌توانید وارد کنید.</p>
-      <p><a class="btn btn-primary" href="https://github.com/HAstaShakiba/hashieh/releases/latest">دانلود رایگان</a></p>
-    </div>
-  </section>
-
   <footer>
     <div class="wrap">
       <span>Hashieh is an independent, unofficial project. SideNotes is a trademark of Apptorium; Hashieh is not
@@ -403,58 +252,6 @@ cd hashieh
     </div>
   </footer>
 
-  <script>
-    // Point the download button at the newest file for this visitor's system.
-    const ua = navigator.userAgent;
-    const os = /Windows/i.test(ua) ? "windows" : /Mac OS X|Macintosh/i.test(ua) ? "mac"
-             : /Linux|X11/i.test(ua) && !/Android/i.test(ua) ? "linux" : null;
-    const pick = {
-      windows: { test: n => n.endsWith("-setup.exe"), label: "Download for Windows" },
-      mac: { test: n => n.endsWith(".dmg"), label: "Download for macOS" },
-      linux: { test: n => n.endsWith(".deb"), label: "Download for Ubuntu / Debian" },
-    }[os];
-    if (pick) document.getElementById("download-label").textContent = pick.label;
-    if (os) document.querySelector(`.card.dl[data-os="${os}"]`)?.classList.add("current");
-    (async () => {
-      try {
-        const res = await fetch("https://api.github.com/repos/HAstaShakiba/hashieh/releases/latest");
-        if (!res.ok) return;
-        const release = await res.json();
-        // Keep every per-OS link pointing at the newest release.
-        for (const link of document.querySelectorAll("[data-suffix]")) {
-          const asset = (release.assets || []).find(a => a.name.endsWith(link.dataset.suffix));
-          if (asset) link.href = asset.browser_download_url;
-        }
-        for (const code of document.querySelectorAll("[data-name-for]")) {
-          const asset = (release.assets || []).find(a => a.name.endsWith(code.dataset.nameFor));
-          if (asset) code.textContent = asset.name;
-        }
-        for (const el of document.querySelectorAll(".dl-version")) el.textContent = release.tag_name.replace(/^v/, "");
-        if (!pick) return;
-        const asset = (release.assets || []).find(a => pick.test(a.name));
-        if (asset) {
-          document.getElementById("download").href = asset.browser_download_url;
-          const size = asset.size > 1048576 ? `${Math.round(asset.size / 1048576)} MB` : `${Math.round(asset.size / 1024)} KB`;
-          document.getElementById("release-meta").textContent =
-            `Version ${release.tag_name.replace(/^v/, "")} · ${size} · MIT license`;
-        }
-      } catch (e) { /* keep the link to the releases page */ }
-    })();
-
-    // Copy buttons on code blocks.
-    for (const pre of document.querySelectorAll("pre")) {
-      const button = document.createElement("button");
-      button.className = "copy";
-      button.textContent = "Copy";
-      button.addEventListener("click", async () => {
-        try {
-          await navigator.clipboard.writeText(pre.querySelector("code").innerText.trim());
-          button.textContent = "Copied";
-          setTimeout(() => (button.textContent = "Copy"), 1500);
-        } catch (e) { button.textContent = "Select & copy"; }
-      });
-      pre.appendChild(button);
-    }
-  </script>
+  <script src="main.js" defer></script>
 </body>
 </html>
