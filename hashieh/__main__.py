@@ -10,20 +10,22 @@
     hashieh themes list
     hashieh shortcut list
     hashieh shortcut toggle|new_note ACCEL [--force]
-                                         set a global GNOME shortcut, e.g. '<Super><Control>n';
+                                         set a global shortcut, e.g. '<Super><Control>n';
                                          an empty ACCEL removes it, --force takes the key over
+    hashieh selftest DIR                 start with temporary data, save a screenshot and a
+                                         report to DIR, then quit (used to check builds)
 """
 
 import os
 import sys
 
 from . import __version__
-from .paths import DB_PATH, load_config, migrate_legacy
 
 
 def _cli(argv) -> int:
     from . import interop, theme
     from .model import Store
+    from .paths import DB_PATH
 
     cmd = argv[0]
     if cmd in ("-h", "--help", "help"):
@@ -64,8 +66,7 @@ def _shortcut_cli(args) -> int:
     from . import shortcuts
 
     if not shortcuts.global_available():
-        print("Global shortcuts need GNOME (org.gnome.settings-daemon.plugins.media-keys).",
-              file=sys.stderr)
+        print("Global shortcuts aren't available on this desktop.", file=sys.stderr)
         return 1
     if args == ["list"]:
         for action, (title, _, _) in shortcuts.GLOBAL_ACTIONS.items():
@@ -82,6 +83,9 @@ def _shortcut_cli(args) -> int:
         print(error, file=sys.stderr)
         return 1
     conflicts = shortcuts.find_conflicts(accel, ignore_action=action)
+    if any(c.schema_id == "os" for c in conflicts):
+        print(f"{shortcuts.label(accel)} is already used by another program.", file=sys.stderr)
+        return 1
     if conflicts and not force:
         print(f"{shortcuts.label(accel)} is already used by:", file=sys.stderr)
         for c in conflicts:
@@ -95,11 +99,45 @@ def _shortcut_cli(args) -> int:
     return 0
 
 
+def _selftest(out_dir: str) -> int:
+    import json
+    import tempfile
+    from pathlib import Path
+
+    # Isolated, throw-away data; must be set before hashieh.paths is imported.
+    tmp = tempfile.mkdtemp(prefix="hashieh-selftest-")
+    os.environ.update(HASHIEH_DATA_DIR=f"{tmp}/data", HASHIEH_CONFIG_DIR=f"{tmp}/config",
+                      XDG_DATA_HOME=f"{tmp}/data", XDG_CONFIG_HOME=f"{tmp}/config")
+    sys.modules[__package__].APP_ID = "io.github.hastashakiba.Hashieh.selftest"
+    from .ui import HashiehApp
+    HashiehApp(selftest_dir=out_dir).run([sys.argv[0]])
+    report = Path(out_dir) / "report.json"
+    if not report.exists():
+        print("selftest: no report written", file=sys.stderr)
+        return 1
+    data = json.loads(report.read_text())
+    print(json.dumps(data, indent=2))
+    return 0 if data.get("ok") else 1
+
+
 def main() -> int:
+    if sys.stdout is None:  # windowed builds (Windows .exe, macOS .app) have no console
+        sys.stdout = sys.stderr = open(os.devnull, "w")
     argv = sys.argv[1:]
+    if argv[:1] == ["selftest"] and len(argv) == 2:
+        return _selftest(argv[1])
+
+    from .paths import IS_LINUX, load_config, migrate_legacy
     migrate_legacy()
     if argv and not argv[0].startswith("-") or argv[:1] in (["--help"], ["-h"], ["--version"]):
         return _cli(argv)
+
+    # macOS passes -psn_* when started from Finder on old systems; ignore it.
+    argv = [a for a in argv if not a.startswith("-psn_")]
+    if not IS_LINUX:
+        from . import ipc
+        if ipc.forward(argv):  # already running: let that instance handle it
+            return 0
 
     # GTK 3 cannot place windows on native Wayland. Docking to the screen edge needs
     # XWayland, so prefer the X11 backend unless the user chose a backend explicitly.

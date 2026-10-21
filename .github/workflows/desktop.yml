@@ -1,0 +1,129 @@
+name: Windows & macOS builds
+
+# Builds the Windows installer/zip and the macOS .dmg, runs the tests and a self-test of
+# each build (screenshot + report uploaded as artifacts). When called by the Release
+# workflow with a tag, the files are attached to that release.
+on:
+  workflow_call:
+    inputs:
+      release_tag:
+        type: string
+        required: false
+        default: ""
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ["hashieh/**", "packaging/**", "data/icons/**", "tests/**", ".github/workflows/desktop.yml"]
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-2022
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: zip
+          pacboy: >-
+            gtk3:p python:p python-gobject:p python-cairo:p pyinstaller:p
+            adwaita-icon-theme:p librsvg:p
+
+      - name: Unit tests
+        run: python -m unittest discover -s tests -t . -v
+
+      - name: Build
+        run: pyinstaller --noconfirm --distpath dist --workpath build packaging/hashieh.spec
+
+      - name: Self-test the build
+        run: ./dist/Hashieh/hashieh-cli.exe selftest selftest
+
+      - name: Zip
+        run: |
+          version="$(python -c 'import hashieh; print(hashieh.__version__)')"
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+          mkdir -p release
+          (cd dist && zip -qr "../release/Hashieh-$version-windows-x64.zip" Hashieh)
+
+      - name: Installer
+        shell: pwsh
+        run: |
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) { choco install innosetup --no-progress -y | Out-Null }
+          & $iscc /Q "/DAppVersion=$env:VERSION" "/DAppSourceDir=$PWD\dist\Hashieh" "/DOutputDir=$PWD\release" packaging\windows\hashieh.iss
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          Get-ChildItem release
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: windows
+          path: |
+            release/
+            selftest/
+
+      - name: Attach to release
+        if: ${{ inputs.release_tag }}
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ inputs.release_tag }}" (Get-ChildItem release).FullName --clobber -R "${{ github.repository }}"
+
+  macos:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install GTK
+        run: brew install gtk+3 pygobject3 adwaita-icon-theme librsvg
+
+      - name: Python with PyGObject
+        run: |
+          for py in $(ls -r "$(brew --prefix)"/bin/python3.* | grep -E 'python3\.[0-9]+$'); do
+            if "$py" -c 'import gi; gi.require_version("Gtk", "3.0"); from gi.repository import Gtk' 2>/dev/null; then
+              echo "Using $py"
+              "$py" -m venv --system-site-packages venv
+              break
+            fi
+          done
+          venv/bin/python -m pip install --quiet pyinstaller
+
+      - name: Unit tests
+        run: venv/bin/python -m unittest discover -s tests -t . -v
+
+      - name: Build
+        run: venv/bin/pyinstaller --noconfirm --distpath dist --workpath build packaging/hashieh.spec
+
+      - name: Self-test the build
+        run: dist/Hashieh.app/Contents/MacOS/Hashieh selftest selftest
+
+      - name: Disk image
+        run: |
+          version="$(venv/bin/python -c 'import hashieh; print(hashieh.__version__)')"
+          mkdir -p release staging
+          cp -R dist/Hashieh.app staging/
+          ln -s /Applications staging/Applications
+          hdiutil create -volname Hashieh -srcfolder staging -ov -format UDZO \
+            "release/Hashieh-$version-macos-arm64.dmg"
+          ls -l release
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: macos
+          path: |
+            release/
+            selftest/
+
+      - name: Attach to release
+        if: ${{ inputs.release_tag }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ inputs.release_tag }}" release/* --clobber -R "${{ github.repository }}"

@@ -3,15 +3,18 @@
 Two kinds, mirroring the macOS app's toggleShortcut/newNoteShortcut plus its
 in-app keys:
 
-* Global shortcuts work anywhere on the desktop. GTK apps can't grab keys
-  themselves on GNOME, so they are stored as GNOME custom keybindings that run
-  the launcher (`hashieh --toggle` and so on).
+* Global shortcuts work anywhere on the desktop.
+  - Linux/GNOME: GTK apps can't grab keys themselves, so they are stored as GNOME
+    custom keybindings that run the launcher (`hashieh --toggle` and so on).
+  - Windows/macOS: the running app registers them with the system (hotkeys.py);
+    they are saved in config.json.
 * In-app shortcuts only work while the panel has focus; they live in config.json.
 
 Accelerators use GTK syntax, e.g. "<Super>n" or "<Control><Shift>f".
 """
 
 import shutil
+import sys
 from pathlib import Path
 from typing import List, NamedTuple, Optional
 
@@ -48,18 +51,22 @@ APP_ACTIONS = {
 }
 
 # Global shortcuts set up on first run, if the key isn't used by anything else.
+# Win+Ctrl+N is taken by Windows (Narrator settings), so Windows uses Ctrl+Alt+N.
 DEFAULT_GLOBAL = {
-    "toggle": "<Super><Control>n",
+    "toggle": "<Control><Alt>n" if sys.platform == "win32" else "<Super><Control>n",
 }
 
+_NATIVE = sys.platform in ("win32", "darwin")
+
+# <Primary> is Ctrl on Linux/Windows and Command on macOS.
 DEFAULT_APP = {
-    "new_note": "<Control>n",
-    "search": "<Control>f",
-    "hide": "<Control>w",
-    "delete_note": "<Control>Delete",
-    "zoom_in": "<Control>equal",
-    "zoom_out": "<Control>minus",
-    "quit": "<Control>q",
+    "new_note": "<Primary>n",
+    "search": "<Primary>f",
+    "hide": "<Primary>w",
+    "delete_note": "<Primary>Delete",
+    "zoom_in": "<Primary>equal",
+    "zoom_out": "<Primary>minus",
+    "quit": "<Primary>q",
 }
 
 # Keys that may be used without a modifier.
@@ -74,6 +81,8 @@ class Conflict(NamedTuple):
 
 
 def launcher() -> str:
+    if getattr(sys, "frozen", False):  # PyInstaller build on Windows/macOS
+        return sys.executable
     installed = Path.home() / ".local/bin/hashieh"
     if installed.exists():
         return str(installed)
@@ -124,7 +133,7 @@ def _schema(schema_id: str):
     return source.lookup(schema_id, True) if source else None
 
 
-def global_available() -> bool:
+def _gnome_global_available() -> bool:
     media = _schema(MEDIA_KEYS)
     return bool(media and media.has_key("custom-keybindings") and _schema(CUSTOM_SCHEMA))
 
@@ -137,8 +146,8 @@ def _path(action: str) -> str:
     return CUSTOM_ROOT + GLOBAL_ACTIONS[action][1] + "/"
 
 
-def get_global(action: str) -> str:
-    if not global_available():
+def _gnome_get_global(action: str) -> str:
+    if not _gnome_global_available():
         return ""
     media = Gio.Settings.new(MEDIA_KEYS)
     path = _path(action)
@@ -147,7 +156,7 @@ def get_global(action: str) -> str:
     return _custom(path).get_string("binding")
 
 
-def set_global(action: str, accel: str) -> None:
+def _gnome_set_global(action: str, accel: str) -> None:
     media = Gio.Settings.new(MEDIA_KEYS)
     path = _path(action)
     paths = list(media.get_strv("custom-keybindings"))
@@ -166,27 +175,27 @@ def set_global(action: str, accel: str) -> None:
     Gio.Settings.sync()
 
 
-def suspend_globals() -> dict:
+def _gnome_suspend_globals() -> dict:
     """Clear our global bindings while recording a new one, so pressing the old key
     records it instead of toggling the panel. Returns what restore_globals needs."""
     saved = {}
-    if global_available():
+    if _gnome_global_available():
         for action in GLOBAL_ACTIONS:
-            saved[action] = get_global(action)
+            saved[action] = _gnome_get_global(action)
             if saved[action]:
                 _custom(_path(action)).set_string("binding", "")
         Gio.Settings.sync()
     return saved
 
 
-def restore_globals(saved: dict) -> None:
+def _gnome_restore_globals(saved: dict) -> None:
     for action, accel in saved.items():
         if accel:
             _custom(_path(action)).set_string("binding", accel)
     Gio.Settings.sync()
 
 
-def find_conflicts(accel: str, ignore_action: Optional[str] = None,
+def _gnome_find_conflicts(accel: str, ignore_action: Optional[str] = None,
                    app_shortcuts: Optional[dict] = None) -> List[Conflict]:
     """Other desktop or Hashieh shortcuts that already use `accel`."""
     if not accel:
@@ -209,7 +218,7 @@ def find_conflicts(accel: str, ignore_action: Optional[str] = None,
                 if any(isinstance(v, str) and same(v, accel) for v in values):
                     summary = schema.get_key(key).get_summary() or key
                     found.append(Conflict(f"GNOME: {summary}", schema_id, None, key))
-        if global_available():
+        if _gnome_global_available():
             ours = {_path(a) for a in GLOBAL_ACTIONS if a == ignore_action}
             for path in Gio.Settings.new(MEDIA_KEYS).get_strv("custom-keybindings"):
                 if path in ours:
@@ -224,7 +233,7 @@ def find_conflicts(accel: str, ignore_action: Optional[str] = None,
     return found
 
 
-def free(conflict: Conflict, accel: str, app_shortcuts: Optional[dict] = None) -> None:
+def _gnome_free(conflict: Conflict, accel: str, app_shortcuts: Optional[dict] = None) -> None:
     """Remove `accel` from the conflicting binding."""
     if conflict.schema_id == "app":
         if app_shortcuts is not None:
@@ -239,9 +248,140 @@ def free(conflict: Conflict, accel: str, app_shortcuts: Optional[dict] = None) -
     Gio.Settings.sync()
 
 
+# Windows / macOS global shortcuts ---------------------------------------------------------------
+# Saved in config.json and registered by the running app through hotkeys.py.
+
+_runtime = {"cfg": None, "hotkeys": None}
+
+
+def bind_runtime(cfg: dict, hotkey_manager) -> None:
+    """Called by the app: use its live config and register the saved global shortcuts."""
+    _runtime.update(cfg=cfg, hotkeys=hotkey_manager)
+    if hotkey_manager:
+        for action, accel in cfg.get("global_shortcuts", {}).items():
+            if accel and action in GLOBAL_ACTIONS:
+                hotkey_manager.register(action, accel)
+
+
+def _native_cfg() -> dict:
+    from .paths import load_config
+    return _runtime["cfg"] if _runtime["cfg"] is not None else load_config()
+
+
+def _native_get_global(action: str) -> str:
+    return _native_cfg().get("global_shortcuts", {}).get(action, "")
+
+
+def _native_set_global(action: str, accel: str) -> bool:
+    from .paths import save_config
+    cfg = _native_cfg()
+    saved = dict(cfg.get("global_shortcuts", {}))
+    if accel:
+        saved[action] = accel
+    else:
+        saved.pop(action, None)
+    cfg["global_shortcuts"] = saved
+    save_config(cfg)
+    manager = _runtime["hotkeys"]
+    if manager is None:
+        return True
+    if not accel:
+        manager.unregister(action)
+        return True
+    return manager.register(action, accel)
+
+
+def _native_find_conflicts(accel: str, ignore_action: Optional[str]) -> List[Conflict]:
+    found = []
+    for action, (title, _, _) in GLOBAL_ACTIONS.items():
+        if action != ignore_action and same(_native_get_global(action), accel):
+            found.append(Conflict(f"Hashieh: {title}", "app-global", None, action))
+    manager = _runtime["hotkeys"]
+    ours = _native_get_global(ignore_action) if ignore_action else ""
+    if manager is not None and not found and not same(ours, accel) and not manager.can_register(accel):
+        found.append(Conflict("Another program or the system", "os", None, ""))
+    return found
+
+
+# Public API (dispatches to GNOME on Linux, to the in-app hotkeys elsewhere) ----------------------
+
+def global_available() -> bool:
+    if _NATIVE:
+        from . import hotkeys
+        return _runtime["hotkeys"] is not None or hotkeys.supported()
+    return _gnome_global_available()
+
+
+def global_scope() -> str:
+    """Where global shortcuts work, for the settings dialog."""
+    if _NATIVE:
+        return "Work anywhere on your computer while Hashieh is running (it starts at login)."
+    return "Work anywhere on the desktop (saved as GNOME keyboard shortcuts)."
+
+
+def get_global(action: str) -> str:
+    return _native_get_global(action) if _NATIVE else _gnome_get_global(action)
+
+
+def set_global(action: str, accel: str) -> bool:
+    """Save a global shortcut. False if the system refused to register it."""
+    if _NATIVE:
+        return _native_set_global(action, accel)
+    _gnome_set_global(action, accel)
+    return True
+
+
+def suspend_globals() -> dict:
+    """Stop our global shortcuts while recording a new one, so pressing the old key
+    records it instead of toggling the panel. Returns what restore_globals needs."""
+    if not _NATIVE:
+        return _gnome_suspend_globals()
+    saved = {action: _native_get_global(action) for action in GLOBAL_ACTIONS}
+    if _runtime["hotkeys"] is not None:
+        _runtime["hotkeys"].unregister_all()
+    return saved
+
+
+def restore_globals(saved: dict) -> None:
+    if not _NATIVE:
+        _gnome_restore_globals(saved)
+        return
+    manager = _runtime["hotkeys"]
+    if manager is not None:
+        for action, accel in saved.items():
+            if accel:
+                manager.register(action, accel)
+
+
+def find_conflicts(accel: str, ignore_action: Optional[str] = None,
+                   app_shortcuts: Optional[dict] = None) -> List[Conflict]:
+    """Other desktop or Hashieh shortcuts that already use `accel`.
+
+    Conflicts with schema_id "os" can't be freed: another program owns the key."""
+    if not accel:
+        return []
+    if _NATIVE:
+        found = _native_find_conflicts(accel, ignore_action)
+        for action, value in (app_shortcuts or {}).items():
+            if same(value, accel):
+                found.append(Conflict(f"Hashieh: {APP_ACTIONS.get(action, action)}", "app", None, action))
+        return found
+    return _gnome_find_conflicts(accel, ignore_action, app_shortcuts)
+
+
+def free(conflict: Conflict, accel: str, app_shortcuts: Optional[dict] = None) -> None:
+    """Remove `accel` from the conflicting binding."""
+    if conflict.schema_id == "app-global":
+        set_global(conflict.key, "")
+    elif conflict.schema_id == "os":
+        raise ValueError("A shortcut owned by another program can't be freed from here.")
+    else:
+        _gnome_free(conflict, accel, app_shortcuts)
+
+
 def migrate_legacy() -> None:
     """Move global shortcuts saved under the old sidenotes-linux names to the new ones."""
-    if not global_available():
+    if _NATIVE or not _gnome_global_available():
         return
     media = Gio.Settings.new(MEDIA_KEYS)
     for action, old_name in LEGACY_PATHS.items():
@@ -253,8 +393,8 @@ def migrate_legacy() -> None:
         for key in ("binding", "command", "name"):
             _custom(old).reset(key)
         media.set_strv("custom-keybindings", [p for p in paths if p != old])
-        if accel and not get_global(action):
-            set_global(action, accel)
+        if accel and not _gnome_get_global(action):
+            _gnome_set_global(action, accel)
     Gio.Settings.sync()
 
 

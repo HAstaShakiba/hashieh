@@ -7,6 +7,7 @@ inline) and switch to raw text editing when clicked.
 """
 
 import math
+import sys
 import time
 from pathlib import Path
 from typing import Optional
@@ -25,6 +26,7 @@ from .paths import (DATA_DIR, DB_PATH, autostart_enabled, load_config, save_conf
                     set_autostart)
 
 CACHE_DIR = Path(GLib.get_user_cache_dir()) / "hashieh"
+NATIVE_IPC = sys.platform in ("win32", "darwin")
 FORMAT_LABELS = {"standard": "Standard", "markdown": "Markdown", "monospaced": "Code"}
 PLACEHOLDER = "Some new idea?"
 OUTER_MARGIN = 10   # gap between the screen edge / window edge and the floating cards
@@ -899,12 +901,12 @@ class ShortcutsDialog(Gtk.Dialog):
             row += 1
 
         if shortcuts.global_available():
-            section("Global", "Work anywhere on the desktop (saved as GNOME keyboard shortcuts).")
+            section("Global", shortcuts.global_scope())
             for action, (title, _, _) in shortcuts.GLOBAL_ACTIONS.items():
                 add("global", action, title, shortcuts.get_global(action))
         else:
-            section("Global", "Not available: this desktop has no GNOME custom keyboard shortcuts. "
-                              "Bind your desktop's shortcut to: hashieh --toggle")
+            section("Global", "Not available on this desktop. "
+                              "Bind your desktop's own shortcut to: hashieh --toggle")
         section(f"In {APP_NAME}", "Work while the panel has focus. Esc always goes back or hides.")
         for action, title in shortcuts.APP_ACTIONS.items():
             add("app", action, title, self._app_value(action))
@@ -970,6 +972,10 @@ class ShortcutsDialog(Gtk.Dialog):
             app_map.pop(action, None)
         conflicts = shortcuts.find_conflicts(accel, ignore_action=action if kind == "global" else None,
                                              app_shortcuts=app_map)
+        if any(c.schema_id == "os" for c in conflicts):
+            _info(self, f"{shortcuts.label(accel)} is already used by another program or by the "
+                        "system. Please choose another shortcut.", error=True)
+            return
         if conflicts:
             listing = "\n".join(f"• {c.description}" for c in conflicts)
             if not _confirm(self, f"{shortcuts.label(accel)} is already used by:\n{listing}\n\n"
@@ -978,7 +984,9 @@ class ShortcutsDialog(Gtk.Dialog):
             for c in conflicts:
                 shortcuts.free(c, accel, self.cfg.setdefault("shortcuts", {}))
         if kind == "global":
-            shortcuts.set_global(action, accel)
+            if not shortcuts.set_global(action, accel):
+                _info(self, f"The system didn't accept {shortcuts.label(accel)}. "
+                            "Please choose another shortcut.", error=True)
         else:
             self.cfg.setdefault("shortcuts", {})[action] = accel
         save_config(self.cfg)
@@ -1213,6 +1221,22 @@ class MainWindow(Gtk.ApplicationWindow):
         mode = self.cfg["appearance"]
         if mode in ("light", "dark"):
             return mode == "dark"
+        if sys.platform == "win32":
+            import winreg
+            try:
+                with winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                                    r"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize") as key:
+                    return winreg.QueryValueEx(key, "AppsUseLightTheme")[0] == 0
+            except OSError:
+                return False
+        if sys.platform == "darwin":
+            import subprocess
+            try:
+                out = subprocess.run(["defaults", "read", "-g", "AppleInterfaceStyle"],
+                                     capture_output=True, text=True, timeout=2).stdout
+            except (OSError, subprocess.SubprocessError):
+                return False
+            return out.strip().lower() == "dark"
         source = Gio.SettingsSchemaSource.get_default()
         if source and source.lookup("org.gnome.desktop.interface", True):
             settings = Gio.Settings.new("org.gnome.desktop.interface")
@@ -1617,11 +1641,18 @@ class MainWindow(Gtk.ApplicationWindow):
 # ---------------------------------------------------------------------------------------------
 
 class HashiehApp(Gtk.Application):
-    def __init__(self):
-        super().__init__(application_id=APP_ID, flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE)
+    def __init__(self, selftest_dir: Optional[str] = None):
+        flags = Gio.ApplicationFlags.HANDLES_COMMAND_LINE
+        if NATIVE_IPC:
+            # No session bus on Windows/macOS: single instance is handled by ipc.py instead.
+            flags |= Gio.ApplicationFlags.NON_UNIQUE
+        super().__init__(application_id=APP_ID, flags=flags)
         self.window: Optional[MainWindow] = None
         self.handle: Optional[EdgeHandle] = None
         self.store: Optional[Store] = None
+        self.hotkeys = None
+        self._ipc = None
+        self.selftest_dir = selftest_dir
         self.cfg = load_config()
         self.add_main_option("toggle", ord("t"), GLib.OptionFlags.NONE, GLib.OptionArg.NONE,
                              "Show or hide the panel", None)
@@ -1636,21 +1667,30 @@ class HashiehApp(Gtk.Application):
     def do_startup(self):
         Gtk.Application.do_startup(self)
         shortcuts.migrate_legacy()
-        shortcuts.first_run_setup(self.cfg)
         self.store = Store(DB_PATH)
         if self.store.is_empty():
             folder = self.store.create_folder("Notes")
             self.store.create_note(folder.id, WELCOME, "markdown")
+        if NATIVE_IPC and not self.selftest_dir:
+            from . import ipc
+            self._ipc = ipc.Server(lambda argv: self.handle_options(ipc.parse_argv(argv)))
 
     def do_command_line(self, command_line):
-        opts = command_line.get_options_dict().end().unpack()
+        self.handle_options(command_line.get_options_dict().end().unpack())
+        return 0
+
+    def handle_options(self, opts: dict):
         if opts.get("quit"):
             self.quit_app()
-            return 0
+            return
         first = self.window is None
         if first:
             self.window = MainWindow(self)
             self._watch_appearance()
+            self._setup_global_shortcuts()
+            if self.selftest_dir:
+                GLib.idle_add(self._run_selftest)
+                return
         if opts.get("hide"):
             self.hide_panel()
         elif opts.get("toggle") and not first and self.window.get_visible():
@@ -1661,10 +1701,28 @@ class HashiehApp(Gtk.Application):
             self.show_panel()
             self.window.new_note_from_cli(opts["new-note"])
         if opts.get("new-note-from-clipboard"):
-            text = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD).wait_for_text() or ""
-            self.show_panel()
-            self.window.new_note_from_cli(text)
-        return 0
+            self._new_note_from_clipboard()
+
+    def _setup_global_shortcuts(self):
+        if NATIVE_IPC:
+            from . import hotkeys
+            self.hotkeys = hotkeys.create(self._on_hotkey)
+            shortcuts.bind_runtime(self.cfg, self.hotkeys)
+        shortcuts.first_run_setup(self.cfg)
+
+    def _on_hotkey(self, action: str):
+        if action == "toggle":
+            if self.window.get_visible():
+                self.hide_panel()
+            else:
+                self.show_panel()
+        elif action == "new_note":
+            self._new_note_from_clipboard()
+
+    def _new_note_from_clipboard(self):
+        text = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD).wait_for_text() or ""
+        self.show_panel()
+        self.window.new_note_from_cli(text)
 
     def show_panel(self):
         win = self.window
@@ -1692,6 +1750,18 @@ class HashiehApp(Gtk.Application):
             self._iface = Gio.Settings.new("org.gnome.desktop.interface")
             self._iface.connect("changed", lambda s, key: key in ("color-scheme", "gtk-theme")
                                 and self.window and self.window.apply_theme())
+        elif sys.platform in ("win32", "darwin"):
+            # No change notification there; re-check now and then while following the system.
+            self._last_dark = None
+
+            def poll():
+                if self.window and self.cfg["appearance"] == "auto":
+                    dark = self.window.is_dark()
+                    if self._last_dark is not None and dark != self._last_dark:
+                        self.window.apply_theme()
+                    self._last_dark = dark
+                return True
+            GLib.timeout_add_seconds(20, poll)
 
     def rebuild_window(self):
         old = self.window
@@ -1714,6 +1784,76 @@ class HashiehApp(Gtk.Application):
     def do_shutdown(self):
         if self.window:
             self.window.flush_all()
+        if self.hotkeys:
+            self.hotkeys.unregister_all()
+        if self._ipc:
+            self._ipc.close()
         if self.store:
             self.store.close()
         Gtk.Application.do_shutdown(self)
+
+    # Self-test: used by CI on every platform to check a build really works ----------------------
+    def _run_selftest(self):
+        import json
+        import platform
+
+        win = self.window
+        folder = self.store.folders()[0]
+        sample = GdkPixbuf.Pixbuf.new(GdkPixbuf.Colorspace.RGB, False, 8, 320, 120)
+        sample.fill(0x3B6FD8FF)
+        _, data = sample.save_to_bufferv("png", [], [])
+        pid = self.store.add_picture(bytes(data))
+        note = self.store.create_note(folder.id, "# Self-test\n[x] rendered task\n[ ] open task\n"
+                                                 "Colors #3B6FD8 #FFD25A **bold** `code`\n"
+                                                 f"[img {pid}]", "markdown")
+        note.color_identifier = "Yellow"
+        self.store.save_note(note)
+        win.open_folder(folder)
+        self.show_panel()
+
+        def finish():
+            out = Path(self.selftest_dir)
+            out.mkdir(parents=True, exist_ok=True)
+            alloc = win.get_allocation()
+            surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, alloc.width, alloc.height)
+            cr = cairo.Context(surface)
+            gradient = cairo.LinearGradient(0, 0, alloc.width, alloc.height)
+            gradient.add_color_stop_rgb(0, .55, .72, .92)
+            gradient.add_color_stop_rgb(1, .18, .38, .72)
+            cr.set_source(gradient)
+            cr.paint()
+            cr.push_group()
+            win.draw(cr)
+            cr.pop_group_to_source()
+            cr.paint()
+            surface.write_to_png(str(out / "screenshot.png"))
+
+            icon_theme = Gtk.IconTheme.get_default()
+            icons = ["go-previous-symbolic", "system-search-symbolic", "list-add-symbolic",
+                     "emblem-system-symbolic", "view-pin-symbolic", "folder-symbolic",
+                     "edit-delete-symbolic", "x-office-calendar-symbolic"]
+            formats = sorted(f.get_name() for f in GdkPixbuf.Pixbuf.get_formats())
+            toggle = shortcuts.get_global("toggle")
+            report = {
+                "platform": platform.platform(),
+                "python": platform.python_version(),
+                "gtk": f"{Gtk.get_major_version()}.{Gtk.get_minor_version()}.{Gtk.get_micro_version()}",
+                "transparent_window": win.transparent,
+                "missing_icons": [i for i in icons if not icon_theme.has_icon(i)],
+                "pixbuf_formats": formats,
+                "cards": len(win.cards),
+                "autostart_after_first_run": autostart_enabled(),
+                "global_toggle_after_first_run": toggle,
+                "hotkey_backend": type(self.hotkeys).__name__ if self.hotkeys else None,
+            }
+            report["ok"] = bool(not report["missing_icons"] and "png" in formats and report["cards"])
+            (out / "report.json").write_text(json.dumps(report, indent=2))
+            # Leave the machine as it was.
+            set_autostart(False, "")
+            if toggle:
+                shortcuts.set_global("toggle", "")
+            self.quit_app()
+            return False
+
+        GLib.timeout_add(2500, finish)
+        return False
