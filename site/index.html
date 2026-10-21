@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Hashieh — notes on the edge of your Linux screen</title>
-  <meta name="description" content="Hashieh is a notes panel that lives on the edge of your Linux screen. Folders, colored cards, light Markdown, tasks and pictures. Imports SideNotes notes and themes.">
-  <meta property="og:title" content="Hashieh — notes on the edge of your Linux screen">
-  <meta property="og:description" content="A docked notes panel for Linux that can import your SideNotes notes and themes.">
+  <title>Hashieh — notes on the edge of your screen</title>
+  <meta name="description" content="Hashieh is a notes panel that lives on the edge of your screen, for Linux, Windows and macOS. Folders, colored cards, light Markdown, tasks and pictures. Imports SideNotes notes and themes.">
+  <meta property="og:title" content="Hashieh — notes on the edge of your screen">
+  <meta property="og:description" content="A docked notes panel for Linux, Windows and macOS that can import your SideNotes notes and themes.">
   <meta property="og:image" content="https://hastashakiba.github.io/hashieh/screenshot.png">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <style>
@@ -156,16 +156,17 @@
 
     <header class="hero">
       <div>
-        <span class="eyebrow">Free &amp; open source · Linux</span>
+        <span class="eyebrow">Free &amp; open source · Linux · Windows · macOS</span>
         <h1>Hashieh<span class="fa" lang="fa">حاشیه</span></h1>
         <p class="lead">A notes panel that lives on the edge of your screen. Jot things down, tick off
           tasks and keep snippets one shortcut away. You can bring your notes over from SideNotes on the Mac.</p>
         <div class="actions">
           <a class="btn btn-primary" id="download" href="https://github.com/HAstaShakiba/hashieh/releases/latest">
-            ⬇ Download for Ubuntu / Debian</a>
+            ⬇ <span id="download-label">Download</span></a>
           <a class="btn btn-ghost" href="https://github.com/HAstaShakiba/hashieh">View on GitHub</a>
         </div>
-        <p class="meta" id="release-meta">.deb package and source archive · MIT license</p>
+        <p class="meta"><span id="release-meta">Linux, Windows and macOS · MIT license</span>
+          · <a href="https://github.com/HAstaShakiba/hashieh/releases/latest">All downloads</a></p>
       </div>
       <div class="shot">
         <img src="screenshot.png" width="570" height="675"
@@ -203,8 +204,28 @@
   <section id="install">
     <div class="wrap">
       <h2>Install</h2>
-      <p class="section-lead">Hashieh needs Python 3.8+ and GTK 3. It's built for GNOME, and works on Wayland
-        through XWayland so it can stay docked.</p>
+      <p class="section-lead">Get the file for your system from the
+        <a href="https://github.com/HAstaShakiba/hashieh/releases/latest">latest release</a>. On first start
+        Hashieh turns on <em>Start at login</em> and binds a show/hide shortcut if that key is free.</p>
+      <div class="grid" style="margin-bottom:16px">
+        <div class="card">
+          <h3>Windows 10 / 11</h3>
+          <p>Run <code>Hashieh-…-windows-x64-setup.exe</code>, which installs per user without admin rights.
+            Shortcut: <kbd>Ctrl</kbd> <kbd>Alt</kbd> <kbd>N</kbd>.</p>
+          <p style="margin-top:8px">The build isn't signed yet: in SmartScreen click <em>More info ▸ Run anyway</em>.</p>
+        </div>
+        <div class="card">
+          <h3>macOS 11+ (Apple Silicon)</h3>
+          <p>Open <code>Hashieh-…-macos-arm64.dmg</code> and drag Hashieh to Applications.
+            Shortcut: <kbd>⌘</kbd> <kbd>Ctrl</kbd> <kbd>N</kbd>.</p>
+          <p style="margin-top:8px">Not notarized yet: allow it in <em>System Settings ▸ Privacy &amp; Security ▸ Open Anyway</em>.</p>
+        </div>
+        <div class="card">
+          <h3>Linux</h3>
+          <p>Built for GNOME (X11 and Wayland). Shortcut: <kbd>Super</kbd> <kbd>Ctrl</kbd> <kbd>N</kbd>.
+            Needs Python 3.8+ and GTK 3, which Ubuntu already has.</p>
+        </div>
+      </div>
       <div class="steps">
         <div class="card">
           <h3>Ubuntu / Debian package</h3>
@@ -264,17 +285,27 @@ cd hashieh
   </footer>
 
   <script>
-    // Point the download button straight at the newest .deb when the GitHub API is reachable.
+    // Point the download button at the newest file for this visitor's system.
+    const ua = navigator.userAgent;
+    const os = /Windows/i.test(ua) ? "windows" : /Mac OS X|Macintosh/i.test(ua) ? "mac"
+             : /Linux|X11/i.test(ua) && !/Android/i.test(ua) ? "linux" : null;
+    const pick = {
+      windows: { test: n => n.endsWith("-setup.exe"), label: "Download for Windows" },
+      mac: { test: n => n.endsWith(".dmg"), label: "Download for macOS" },
+      linux: { test: n => n.endsWith(".deb"), label: "Download for Ubuntu / Debian" },
+    }[os];
+    if (pick) document.getElementById("download-label").textContent = pick.label;
     (async () => {
       try {
         const res = await fetch("https://api.github.com/repos/HAstaShakiba/hashieh/releases/latest");
-        if (!res.ok) return;
+        if (!res.ok || !pick) return;
         const release = await res.json();
-        const deb = (release.assets || []).find(a => a.name.endsWith(".deb"));
-        if (deb) {
-          document.getElementById("download").href = deb.browser_download_url;
+        const asset = (release.assets || []).find(a => pick.test(a.name));
+        if (asset) {
+          document.getElementById("download").href = asset.browser_download_url;
+          const size = asset.size > 1048576 ? `${Math.round(asset.size / 1048576)} MB` : `${Math.round(asset.size / 1024)} KB`;
           document.getElementById("release-meta").textContent =
-            `Version ${release.tag_name.replace(/^v/, "")} · ${Math.round(deb.size / 1024)} KB · MIT license`;
+            `Version ${release.tag_name.replace(/^v/, "")} · ${size} · MIT license`;
         }
       } catch (e) { /* keep the link to the releases page */ }
     })();

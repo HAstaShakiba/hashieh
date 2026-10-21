@@ -1,6 +1,6 @@
 # Hashieh
 
-*Hashieh* (حاشیه, "margin") is a notes panel for Linux that lives on the edge of your screen. It
+*Hashieh* (حاشیه, "margin") is a notes panel for Linux, Windows and macOS that lives on the edge of your screen. It
 has folders, colored note cards, light Markdown, tasks, color swatches, pictures and file links.
 It can import and export the notes and themes of
 [SideNotes](https://www.apptorium.com/sidenotes) for macOS, so you can move your notes from a Mac.
@@ -14,16 +14,26 @@ Website: <https://hastashakiba.github.io/hashieh/>
 
 ## Install
 
-**Debian / Ubuntu:** download `hashieh_<version>_all.deb` from
-[Releases](https://github.com/HAstaShakiba/hashieh/releases), then run:
+Download the file for your system from [Releases](https://github.com/HAstaShakiba/hashieh/releases):
 
-```bash
-sudo apt install ./hashieh_*_all.deb
-```
+| System | File | Show / hide shortcut |
+|---|---|---|
+| Ubuntu / Debian | `hashieh_<version>_all.deb`, then `sudo apt install ./hashieh_*_all.deb` | Super+Ctrl+N |
+| Windows 10/11 (x64) | `Hashieh-<version>-windows-x64-setup.exe` (or the portable `.zip`) | Ctrl+Alt+N |
+| macOS 11+ (Apple Silicon) | `Hashieh-<version>-macos-arm64.dmg`, drag Hashieh to Applications | Cmd+Ctrl+N |
 
-The first time you start Hashieh it turns on *Start at login* and binds **Super+Ctrl+N** to show and
-hide the panel. It only binds the key if nothing else on your desktop uses it. You can change or
-turn off both in ⚙, and Hashieh won't turn them back on.
+The first time you start Hashieh it turns on *Start at login* and binds the show/hide shortcut.
+It only binds the key if nothing else uses it. You can change or turn off both in ⚙, and Hashieh
+won't turn them back on.
+
+The Windows and macOS builds aren't code-signed yet, so the first launch shows a warning:
+
+* **Windows:** SmartScreen says "Windows protected your PC". Click *More info*, then *Run anyway*.
+* **macOS:** if macOS says the app "can't be opened", open *System Settings ▸ Privacy & Security*
+  and click *Open Anyway*. You can also run `xattr -dr com.apple.quarantine /Applications/Hashieh.app` once.
+
+On Windows and macOS, global shortcuts work while Hashieh is running, and it starts at login.
+On macOS Hashieh has no Dock icon; open it with the shortcut or the handle on the screen edge.
 
 **From source** (needs `python3-gi`, `python3-gi-cairo` and `gir1.2-gtk-3.0`):
 
@@ -93,6 +103,15 @@ Importing doesn't change the source file, and you can import again later: notes 
 and the newer copy wins. To use your SideNotes themes too, run
 `hashieh themes install /path/to/SideNotes.app`.
 
+## Platform notes
+
+* **Linux:** global shortcuts are GNOME keyboard shortcuts, so they work even before Hashieh is
+  running. Other desktops can bind their own shortcut to `hashieh --toggle`.
+* **Windows / macOS:** the builds bundle GTK 3, so they don't look fully native, and they are
+  ~30 MB. Command-line use: `hashieh-cli.exe` next to `Hashieh.exe` on Windows, and
+  `/Applications/Hashieh.app/Contents/MacOS/Hashieh` on macOS.
+* **Intel Macs** aren't built yet.
+
 ## Wayland
 
 GTK 3 can't place windows on native Wayland. While the panel is docked, Hashieh runs through
@@ -101,9 +120,12 @@ XWayland so it can stay on the screen edge and on top of other windows. If you t
 
 ## Files
 
-* Notes: `~/.local/share/hashieh/notes.db` (SQLite; pictures are stored inside it)
-* Themes: `~/.local/share/hashieh/themes/`
-* Settings: `~/.config/hashieh/config.json`
+| | Linux | Windows | macOS |
+|---|---|---|---|
+| Notes (`notes.db`), themes | `~/.local/share/hashieh` | `%LOCALAPPDATA%\Hashieh` | `~/Library/Application Support/Hashieh` |
+| Settings (`config.json`) | `~/.config/hashieh` | `%APPDATA%\Hashieh` | `~/Library/Application Support/Hashieh` |
+
+Notes are a single SQLite file, with pictures stored inside it.
 
 ## Compatibility notes
 
@@ -125,6 +147,8 @@ packaging/build.sh                           # dist/: .tar.gz, .deb and SHA256SU
 ```
 
 CI runs the tests and builds the packages on Ubuntu 22.04 and 24.04 for every push and pull request.
+The Windows and macOS builds (PyInstaller, `packaging/hashieh.spec`) run on their own runners,
+which also run `hashieh selftest` on the built app and upload its screenshot and report.
 
 To release, bump `__version__` in `hashieh/__init__.py`, optionally add
 `packaging/release-notes/vX.Y.Z.md`, commit, and push a matching tag:
