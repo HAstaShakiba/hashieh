@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hashieh — notes on the edge of your Linux screen</title>
+  <meta name="description" content="Hashieh is a notes panel that lives on the edge of your Linux screen. Folders, colored cards, light Markdown, tasks and pictures. Imports SideNotes notes and themes.">
+  <meta property="og:title" content="Hashieh — notes on the edge of your Linux screen">
+  <meta property="og:description" content="A docked notes panel for Linux that can import your SideNotes notes and themes.">
+  <meta property="og:image" content="https://hastashakiba.github.io/hashieh/screenshot.png">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <style>
+    :root {
+      --bg: #f4f6fb;
+      --bg-grad: #e7edf8;
+      --surface: #ffffff;
+      --text: #1d2330;
+      --muted: #5d6676;
+      --accent: #3b6fd8;
+      --accent-ink: #ffffff;
+      --accent-soft: #e4ecfb;
+      --gold: #ffd25a;
+      --border: #dfe4ee;
+      --code-bg: #eef2f9;
+      --shadow: 0 10px 30px rgba(28, 46, 89, 0.10);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #12151b;
+        --bg-grad: #182030;
+        --surface: #1c212b;
+        --text: #e6eaf2;
+        --muted: #9aa4b5;
+        --accent: #7aa2f7;
+        --accent-ink: #0f1422;
+        --accent-soft: #233150;
+        --border: #2b3240;
+        --code-bg: #161b24;
+        --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      }
+    }
+    :root[data-theme="dark"] {
+      --bg: #12151b;
+      --bg-grad: #182030;
+      --surface: #1c212b;
+      --text: #e6eaf2;
+      --muted: #9aa4b5;
+      --accent: #7aa2f7;
+      --accent-ink: #0f1422;
+      --accent-soft: #233150;
+      --border: #2b3240;
+      --code-bg: #161b24;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Ubuntu, Cantarell, "Noto Sans", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, var(--bg-grad), var(--bg) 520px) var(--bg);
+    }
+    a { color: var(--accent); }
+    .wrap { max-width: 1040px; margin: 0 auto; padding: 0 20px; }
+
+    nav { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 19px;
+             color: var(--text); text-decoration: none; }
+    .brand img { width: 32px; height: 32px; }
+    .nav-links { display: flex; gap: 18px; align-items: center; }
+    .nav-links a { color: var(--muted); text-decoration: none; font-weight: 600; font-size: 15px; }
+    .nav-links a:hover { color: var(--text); }
+
+    .hero { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 48px; align-items: center;
+            padding: 36px 0 64px; }
+    .eyebrow { display: inline-block; font-size: 13px; font-weight: 700; letter-spacing: .02em;
+               color: var(--accent); background: var(--accent-soft); padding: 4px 10px;
+               border-radius: 999px; }
+    h1 { font-size: clamp(36px, 6vw, 56px); line-height: 1.08; margin: 16px 0 12px; letter-spacing: -0.02em; }
+    h1 .fa { font-weight: 700; color: var(--muted); font-size: .55em; margin-inline-start: 10px; }
+    .lead { font-size: 19px; color: var(--muted); margin: 0 0 28px; max-width: 34em; }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; border-radius: 12px;
+           font-weight: 700; text-decoration: none; border: 1px solid transparent; }
+    .btn-primary { background: var(--accent); color: var(--accent-ink); box-shadow: var(--shadow); }
+    .btn-primary:hover { filter: brightness(1.05); }
+    .btn-ghost { background: var(--surface); color: var(--text); border-color: var(--border); }
+    .btn-ghost:hover { border-color: var(--accent); }
+    .meta { margin-top: 14px; font-size: 14px; color: var(--muted); }
+
+    .shot { justify-self: center; position: relative; }
+    .shot img { width: 100%; max-width: 440px; border-radius: 22px; box-shadow: var(--shadow);
+                display: block; }
+    .shot::before { content: ""; position: absolute; inset: 8% -6% -4% 12%; background: var(--gold);
+                    opacity: .35; filter: blur(48px); border-radius: 40px; z-index: -1; }
+
+    section { padding: 56px 0; }
+    h2 { font-size: 30px; margin: 0 0 8px; letter-spacing: -0.01em; }
+    .section-lead { color: var(--muted); margin: 0 0 28px; max-width: 40em; }
+
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px;
+            padding: 20px; }
+    .card h3 { margin: 10px 0 6px; font-size: 17px; }
+    .card p { margin: 0; color: var(--muted); font-size: 15px; }
+    .icon { width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center;
+            background: var(--accent-soft); color: var(--accent); font-size: 19px; }
+
+    .steps { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    pre { margin: 10px 0 0; background: var(--code-bg); border: 1px solid var(--border); border-radius: 12px;
+          padding: 14px 72px 14px 16px; overflow-x: auto; font-size: 14px; position: relative; }
+    code { font-family: ui-monospace, "Ubuntu Mono", "DejaVu Sans Mono", monospace; }
+    p code, td code, li code { background: var(--code-bg); padding: 1px 6px; border-radius: 6px; font-size: .92em; }
+    .copy { position: absolute; top: 8px; right: 8px; border: 1px solid var(--border); background: var(--surface);
+            color: var(--muted); border-radius: 8px; font: 600 12px system-ui, sans-serif; padding: 4px 8px;
+            cursor: pointer; }
+    .copy:hover { color: var(--text); }
+
+    table { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--border);
+            border-radius: 14px; overflow: hidden; }
+    td { padding: 11px 16px; border-top: 1px solid var(--border); }
+    tr:first-child td { border-top: none; }
+    td:first-child { width: 38%; white-space: nowrap; }
+    kbd { font: 600 13px ui-monospace, monospace; background: var(--code-bg); border: 1px solid var(--border);
+          border-bottom-width: 2px; border-radius: 6px; padding: 1px 6px; }
+
+    ol.flow { padding-left: 20px; margin: 0; }
+    ol.flow li { margin: 0 0 10px; }
+
+    footer { padding: 36px 0 48px; color: var(--muted); font-size: 14px; border-top: 1px solid var(--border); }
+    footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+
+    @media (max-width: 860px) {
+      .hero { grid-template-columns: 1fr; gap: 32px; padding-top: 16px; }
+      .grid { grid-template-columns: 1fr 1fr; }
+      .steps { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 560px) {
+      .grid { grid-template-columns: 1fr; }
+      .nav-links a.hide-sm { display: none; }
+      td:first-child { white-space: normal; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <nav>
+      <a class="brand" href="./"><img src="icon.svg" alt="">Hashieh</a>
+      <div class="nav-links">
+        <a class="hide-sm" href="#features">Features</a>
+        <a class="hide-sm" href="#install">Install</a>
+        <a href="https://github.com/HAstaShakiba/hashieh">GitHub</a>
+      </div>
+    </nav>
+
+    <header class="hero">
+      <div>
+        <span class="eyebrow">Free &amp; open source · Linux</span>
+        <h1>Hashieh<span class="fa" lang="fa">حاشیه</span></h1>
+        <p class="lead">A notes panel that lives on the edge of your screen. Jot things down, tick off
+          tasks and keep snippets one shortcut away. You can bring your notes over from SideNotes on the Mac.</p>
+        <div class="actions">
+          <a class="btn btn-primary" id="download" href="https://github.com/HAstaShakiba/hashieh/releases/latest">
+            ⬇ Download for Ubuntu / Debian</a>
+          <a class="btn btn-ghost" href="https://github.com/HAstaShakiba/hashieh">View on GitHub</a>
+        </div>
+        <p class="meta" id="release-meta">.deb package and source archive · MIT license</p>
+      </div>
+      <div class="shot">
+        <img src="screenshot.png" width="570" height="675"
+             alt="Hashieh panel showing colored note cards with tasks, color swatches and Markdown, in light and dark mode">
+      </div>
+    </header>
+  </div>
+
+  <section id="features">
+    <div class="wrap">
+      <h2>Everything a side note needs</h2>
+      <p class="section-lead">Notes appear rendered, the way you read them. Click a note when you want to
+        edit its text.</p>
+      <div class="grid">
+        <div class="card"><div class="icon">▏</div><h3>Docked to the edge</h3>
+          <p>A transparent panel on the left or right edge, above other windows. A small handle brings it
+            back when it's hidden.</p></div>
+        <div class="card"><div class="icon">◯</div><h3>Tasks you can tick</h3>
+          <p>Write <code>[ ]</code> and it becomes a circle you can click. Done items stay in place
+            with a check mark.</p></div>
+        <div class="card"><div class="icon">✱</div><h3>Light Markdown</h3>
+          <p>Headings, bold, italic, strike, highlight, code, quotes and lists, without leaving
+            plain text.</p></div>
+        <div class="card"><div class="icon">●</div><h3>Colors &amp; folders</h3>
+          <p>Six note colors, pinned notes and folders, plus search across everything you've written.</p></div>
+        <div class="card"><div class="icon">▣</div><h3>Pictures &amp; files</h3>
+          <p>Paste or drop an image to attach it. Drop a file to keep a link to it in the note.</p></div>
+        <div class="card"><div class="icon">◐</div><h3>Themes</h3>
+          <p>A built-in light and dark theme. You can also install the <code>.sntheme</code> themes from
+            your copy of SideNotes.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="install">
+    <div class="wrap">
+      <h2>Install</h2>
+      <p class="section-lead">Hashieh needs Python 3.8+ and GTK 3. It's built for GNOME, and works on Wayland
+        through XWayland so it can stay docked.</p>
+      <div class="steps">
+        <div class="card">
+          <h3>Ubuntu / Debian package</h3>
+          <p>Download the <code>.deb</code> from the latest release, then:</p>
+          <pre><code>sudo apt install ./hashieh_*_all.deb</code></pre>
+          <p style="margin-top:10px">Turn on <em>Start at login</em> and set your shortcut in ⚙.</p>
+        </div>
+        <div class="card">
+          <h3>From source</h3>
+          <p>Installs into <code>~/.local</code>, with autostart and a global shortcut:</p>
+          <pre><code>git clone https://github.com/HAstaShakiba/hashieh.git
+cd hashieh
+./install.sh --autostart --shortcut '&lt;Super&gt;&lt;Control&gt;n'</code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="shortcuts">
+    <div class="wrap">
+      <h2>Keyboard first</h2>
+      <p class="section-lead">You can change every shortcut in ⚙ ▸ Keyboard shortcuts. Hashieh tells you if a
+        key is already taken.</p>
+      <table>
+        <tr><td>Your global shortcut</td><td>Show or hide the panel from anywhere</td></tr>
+        <tr><td><kbd>Ctrl</kbd> <kbd>N</kbd></td><td>New note (or folder)</td></tr>
+        <tr><td><kbd>Ctrl</kbd> <kbd>F</kbd></td><td>Search all notes</td></tr>
+        <tr><td><kbd>Esc</kbd></td><td>Stop editing, go back, hide</td></tr>
+        <tr><td><kbd>Ctrl</kbd> <kbd>=</kbd> / <kbd>Ctrl</kbd> <kbd>-</kbd></td><td>Bigger / smaller text</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <section id="sidenotes">
+    <div class="wrap">
+      <h2>Coming from SideNotes?</h2>
+      <p class="section-lead">Hashieh reads SideNotes data, so your notes, colors, tasks and pictures come with
+        you.</p>
+      <div class="card">
+        <ol class="flow">
+          <li>On your Mac, quit SideNotes and copy <code>SideNotes.sqlite</code> (with its <code>-wal</code> and
+            <code>-shm</code> files), or a <code>.snbackup</code> from its Backups settings.</li>
+          <li>On Linux, run <code>hashieh import /path/to/SideNotes.sqlite</code>, or use
+            ⋯ ▸ Import SideNotes data.</li>
+          <li>Optional: <code>hashieh themes install /path/to/SideNotes.app</code> to use your themes.</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <span>Hashieh is an independent, unofficial project. It is not affiliated with Apptorium, the makers of SideNotes.</span>
+      <span>MIT license · <a href="https://github.com/HAstaShakiba/hashieh">Source on GitHub</a></span>
+    </div>
+  </footer>
+
+  <script>
+    // Point the download button straight at the newest .deb when the GitHub API is reachable.
+    (async () => {
+      try {
+        const res = await fetch("https://api.github.com/repos/HAstaShakiba/hashieh/releases/latest");
+        if (!res.ok) return;
+        const release = await res.json();
+        const deb = (release.assets || []).find(a => a.name.endsWith(".deb"));
+        if (deb) {
+          document.getElementById("download").href = deb.browser_download_url;
+          document.getElementById("release-meta").textContent =
+            `Version ${release.tag_name.replace(/^v/, "")} · ${Math.round(deb.size / 1024)} KB · MIT license`;
+        }
+      } catch (e) { /* keep the link to the releases page */ }
+    })();
+
+    // Copy buttons on code blocks.
+    for (const pre of document.querySelectorAll("pre")) {
+      const button = document.createElement("button");
+      button.className = "copy";
+      button.textContent = "Copy";
+      button.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(pre.querySelector("code").innerText.trim());
+          button.textContent = "Copied";
+          setTimeout(() => (button.textContent = "Copy"), 1500);
+        } catch (e) { button.textContent = "Select & copy"; }
+      });
+      pre.appendChild(button);
+    }
+  </script>
+</body>
+</html>

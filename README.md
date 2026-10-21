@@ -5,6 +5,8 @@ has folders, colored note cards, light Markdown, tasks, color swatches, pictures
 It can import and export the notes and themes of
 [SideNotes](https://www.apptorium.com/sidenotes) for macOS, so you can move your notes from a Mac.
 
+Website: <https://hastashakiba.github.io/hashieh/>
+
 > **Unofficial.** Hashieh is an independent project. It is not affiliated with or endorsed by
 > Apptorium, the makers of SideNotes. It doesn't include any SideNotes code or assets.
 
