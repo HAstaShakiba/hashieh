@@ -1,0 +1,19 @@
+[Desktop Entry]
+Type=Application
+Name=Hashieh
+Comment=Notes that live on the edge of your screen
+Exec=@EXEC@
+Icon=io.github.hastashakiba.Hashieh
+Terminal=false
+Categories=Utility;TextEditor;
+Keywords=notes;sticky;markdown;sidebar;
+StartupNotify=false
+Actions=Toggle;NewNote;
+
+[Desktop Action Toggle]
+Name=Show/Hide
+Exec=@EXEC@ --toggle
+
+[Desktop Action NewNote]
+Name=New Note from Clipboard
+Exec=@EXEC@ --new-note-from-clipboard

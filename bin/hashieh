@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# Launcher: pick a Python interpreter that has PyGObject (gi) with GTK 3 available.
+set -euo pipefail
+
+here="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." && pwd)"
+export PYTHONPATH="$here${PYTHONPATH:+:$PYTHONPATH}"
+
+for py in "${HASHIEH_PYTHON:-}" python3 /usr/bin/python3 python3.12 python3.11 python3.10; do
+    [ -n "$py" ] || continue
+    if command -v "$py" >/dev/null 2>&1 &&
+        "$py" -c 'import gi; gi.require_version("Gtk", "3.0"); from gi.repository import Gtk' >/dev/null 2>&1; then
+        exec "$py" -m hashieh "$@"
+    fi
+done
+
+echo "hashieh: no Python with PyGObject + GTK 3 found." >&2
+echo "Install it with: sudo apt install python3-gi gir1.2-gtk-3.0" >&2
+exit 1
