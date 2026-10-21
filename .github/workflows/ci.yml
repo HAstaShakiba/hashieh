@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          # GTK 3 bindings come from the distribution; the GNOME schemas let the
+          # global-shortcut tests run (against an in-memory GSettings backend).
+          sudo apt-get install -y --no-install-recommends \
+            python3-gi python3-gi-cairo python3-cairo gir1.2-gtk-3.0 \
+            gnome-settings-daemon-common gsettings-desktop-schemas desktop-file-utils
+
+      - name: Compile
+        run: /usr/bin/python3 -m compileall -q hashieh tests
+
+      - name: Unit tests
+        run: /usr/bin/python3 -m unittest discover -s tests -t . -v
+
+      - name: Build packages
+        run: packaging/build.sh
+
+      - name: Check packages
+        run: |
+          set -e
+          dpkg-deb --info dist/hashieh_*_all.deb
+          mkdir -p /tmp/deb && dpkg-deb -x dist/hashieh_*_all.deb /tmp/deb
+          desktop-file-validate /tmp/deb/usr/share/applications/*.desktop
+          PYTHONPATH=/tmp/deb/usr/lib/hashieh /usr/bin/python3 -m hashieh --version
+          (cd dist && sha256sum -c SHA256SUMS)
+
+      - uses: actions/upload-artifact@v4
+        if: matrix.os == 'ubuntu-22.04'
+        with:
+          name: packages
+          path: dist/

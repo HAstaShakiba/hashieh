@@ -118,6 +118,18 @@ python3 -m unittest discover -s tests -t .   # tests (GNOME settings use an in-m
 packaging/build.sh                           # dist/: .tar.gz, .deb and SHA256SUMS
 ```
 
+CI runs the tests and builds the packages on Ubuntu 22.04 and 24.04 for every push and pull request.
+
+To release, bump `__version__` in `hashieh/__init__.py`, optionally add
+`packaging/release-notes/vX.Y.Z.md`, commit, and push a matching tag:
+
+```bash
+git tag v0.1.1 && git push origin v0.1.1
+```
+
+The Release workflow checks that the tag matches the version, runs the tests, builds the packages
+and publishes a GitHub release with them. Without a notes file, GitHub generates the notes.
+
 ## License
 
 MIT. See [LICENSE](LICENSE).

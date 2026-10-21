@@ -1,0 +1,48 @@
+name: Release
+
+# Push a tag like v0.1.1 whose number matches hashieh/__init__.py to publish a release.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check tag matches version
+        run: |
+          version="$(sed -n 's/^__version__ = "\(.*\)"/\1/p' hashieh/__init__.py)"
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match __version__ $version"
+            exit 1
+          fi
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            python3-gi python3-gi-cairo python3-cairo gir1.2-gtk-3.0 \
+            gnome-settings-daemon-common gsettings-desktop-schemas
+
+      - name: Unit tests
+        run: /usr/bin/python3 -m unittest discover -s tests -t .
+
+      - name: Build packages
+        run: packaging/build.sh
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          notes="packaging/release-notes/$GITHUB_REF_NAME.md"
+          if [ -f "$notes" ]; then
+            set -- --notes-file "$notes"
+          else
+            set -- --generate-notes
+          fi
+          gh release create "$GITHUB_REF_NAME" dist/* --title "Hashieh ${GITHUB_REF_NAME#v}" "$@"
