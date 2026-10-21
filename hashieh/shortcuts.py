@@ -47,6 +47,11 @@ APP_ACTIONS = {
     "quit": "Quit",
 }
 
+# Global shortcuts set up on first run, if the key isn't used by anything else.
+DEFAULT_GLOBAL = {
+    "toggle": "<Super><Control>n",
+}
+
 DEFAULT_APP = {
     "new_note": "<Control>n",
     "search": "<Control>f",
@@ -251,3 +256,35 @@ def migrate_legacy() -> None:
         if accel and not get_global(action):
             set_global(action, accel)
     Gio.Settings.sync()
+
+
+def apply_defaults() -> List[str]:
+    """Bind DEFAULT_GLOBAL shortcuts that are unset and free. Never takes a key
+    from another binding. Returns the actions that were bound."""
+    bound = []
+    if not global_available():
+        return bound
+    for action, accel in DEFAULT_GLOBAL.items():
+        if get_global(action) or find_conflicts(accel, ignore_action=action):
+            continue
+        set_global(action, accel)
+        bound.append(action)
+    return bound
+
+
+def first_run_setup(cfg: dict) -> bool:
+    """Turn on autostart and the default global shortcut the first time the app runs.
+
+    Runs once per user (recorded in config), so turning either off later sticks.
+    Returns True if it ran.
+    """
+    from .paths import autostart_enabled, save_config, set_autostart
+
+    if cfg.get("defaults_applied"):
+        return False
+    if not autostart_enabled():
+        set_autostart(True, launcher())
+    apply_defaults()
+    cfg["defaults_applied"] = True
+    save_config(cfg)
+    return True

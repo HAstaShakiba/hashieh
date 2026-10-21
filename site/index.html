@@ -210,14 +210,15 @@
           <h3>Ubuntu / Debian package</h3>
           <p>Download the <code>.deb</code> from the latest release, then:</p>
           <pre><code>sudo apt install ./hashieh_*_all.deb</code></pre>
-          <p style="margin-top:10px">Turn on <em>Start at login</em> and set your shortcut in ⚙.</p>
+          <p style="margin-top:10px">On first start it turns on <em>Start at login</em> and binds
+            <kbd>Super</kbd> <kbd>Ctrl</kbd> <kbd>N</kbd> if that key is free. Change either one in ⚙.</p>
         </div>
         <div class="card">
           <h3>From source</h3>
-          <p>Installs into <code>~/.local</code>, with autostart and a global shortcut:</p>
+          <p>Installs into <code>~/.local</code>, with the same first-start setup:</p>
           <pre><code>git clone https://github.com/HAstaShakiba/hashieh.git
 cd hashieh
-./install.sh --autostart --shortcut '&lt;Super&gt;&lt;Control&gt;n'</code></pre>
+./install.sh</code></pre>
         </div>
       </div>
     </div>
@@ -229,7 +230,7 @@ cd hashieh
       <p class="section-lead">You can change every shortcut in ⚙ ▸ Keyboard shortcuts. Hashieh tells you if a
         key is already taken.</p>
       <table>
-        <tr><td>Your global shortcut</td><td>Show or hide the panel from anywhere</td></tr>
+        <tr><td><kbd>Super</kbd> <kbd>Ctrl</kbd> <kbd>N</kbd></td><td>Show or hide the panel from anywhere</td></tr>
         <tr><td><kbd>Ctrl</kbd> <kbd>N</kbd></td><td>New note (or folder)</td></tr>
         <tr><td><kbd>Ctrl</kbd> <kbd>F</kbd></td><td>Search all notes</td></tr>
         <tr><td><kbd>Esc</kbd></td><td>Stop editing, go back, hide</td></tr>

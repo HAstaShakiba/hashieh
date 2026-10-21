@@ -1636,6 +1636,7 @@ class HashiehApp(Gtk.Application):
     def do_startup(self):
         Gtk.Application.do_startup(self)
         shortcuts.migrate_legacy()
+        shortcuts.first_run_setup(self.cfg)
         self.store = Store(DB_PATH)
         if self.store.is_empty():
             folder = self.store.create_folder("Notes")

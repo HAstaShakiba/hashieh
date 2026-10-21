@@ -54,6 +54,51 @@ class GlobalShortcutTests(unittest.TestCase):
         shortcuts.free(found[0], "<Super>n")
         self.assertEqual(settings.get_strv("focus-active-notification"), [])
 
+    def test_defaults_bind_only_free_unset_keys(self):
+        default = shortcuts.DEFAULT_GLOBAL["toggle"]
+        shortcuts.set_global("toggle", "")
+        self.assertEqual(shortcuts.apply_defaults(), ["toggle"])
+        self.assertEqual(shortcuts.get_global("toggle"), default)
+        # an existing choice is kept
+        shortcuts.set_global("toggle", "<Super>k")
+        self.assertEqual(shortcuts.apply_defaults(), [])
+        self.assertEqual(shortcuts.get_global("toggle"), "<Super>k")
+        # a key used by another program is not taken
+        shortcuts.set_global("toggle", "")
+        other = shortcuts.CUSTOM_ROOT + "someone-else/"
+        media = Gio.Settings.new(shortcuts.MEDIA_KEYS)
+        media.set_strv("custom-keybindings", list(media.get_strv("custom-keybindings")) + [other])
+        shortcuts._custom(other).set_string("binding", default)
+        self.assertEqual(shortcuts.apply_defaults(), [])
+        self.assertEqual(shortcuts.get_global("toggle"), "")
+        shortcuts._custom(other).set_string("binding", "")
+        media.set_strv("custom-keybindings", [p for p in media.get_strv("custom-keybindings") if p != other])
+
+    def test_first_run_setup_runs_once(self):
+        import tempfile
+        from pathlib import Path
+        from hashieh import paths
+        with tempfile.TemporaryDirectory() as tmp:
+            old_autostart, old_config = paths.AUTOSTART_PATH, paths.CONFIG_PATH
+            paths.AUTOSTART_PATH = Path(tmp) / "autostart" / "hashieh.desktop"
+            paths.CONFIG_PATH = Path(tmp) / "config.json"
+            old_dir, paths.CONFIG_DIR = paths.CONFIG_DIR, Path(tmp)
+            try:
+                shortcuts.set_global("toggle", "")
+                cfg = dict(paths.DEFAULT_CONFIG)
+                self.assertTrue(shortcuts.first_run_setup(cfg))
+                self.assertTrue(paths.autostart_enabled())
+                self.assertIn("--hide", paths.AUTOSTART_PATH.read_text())
+                self.assertEqual(shortcuts.get_global("toggle"), shortcuts.DEFAULT_GLOBAL["toggle"])
+                # the user turns both off: a later start must not turn them back on
+                paths.set_autostart(False, "")
+                shortcuts.set_global("toggle", "")
+                self.assertFalse(shortcuts.first_run_setup(paths.load_config()))
+                self.assertFalse(paths.autostart_enabled())
+                self.assertEqual(shortcuts.get_global("toggle"), "")
+            finally:
+                paths.AUTOSTART_PATH, paths.CONFIG_PATH, paths.CONFIG_DIR = old_autostart, old_config, old_dir
+
     def test_suspend_and_restore(self):
         shortcuts.set_global("toggle", "<Super>k")
         saved = shortcuts.suspend_globals()

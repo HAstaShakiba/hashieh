@@ -21,17 +21,21 @@ Website: <https://hastashakiba.github.io/hashieh/>
 sudo apt install ./hashieh_*_all.deb
 ```
 
+The first time you start Hashieh it turns on *Start at login* and binds **Super+Ctrl+N** to show and
+hide the panel. It only binds the key if nothing else on your desktop uses it. You can change or
+turn off both in ⚙, and Hashieh won't turn them back on.
+
 **From source** (needs `python3-gi`, `python3-gi-cairo` and `gir1.2-gtk-3.0`):
 
 ```bash
 git clone https://github.com/HAstaShakiba/hashieh.git
 cd hashieh
-./install.sh --autostart --shortcut '<Super><Control>n'
+./install.sh
 ```
 
-`install.sh` puts `hashieh` in `~/.local/bin` and adds a menu entry. `--autostart` starts the
-panel hidden at login, and `--shortcut` binds a GNOME shortcut that shows and hides the panel.
-To remove it, run `./install.sh --uninstall`.
+`install.sh` puts `hashieh` in `~/.local/bin` and adds a menu entry. Autostart and the shortcut
+are set up on first start, as with the package. You can also choose them up front with
+`--autostart` and `--shortcut '<keys>'`. To remove it, run `./install.sh --uninstall`.
 
 ## Use
 
@@ -54,7 +58,7 @@ You can change all of these in ⚙ ▸ Keyboard shortcuts…
 
 | Shortcut | Action |
 |---|---|
-| your global shortcut | show / hide the panel (anywhere on the desktop) |
+| `Super+Ctrl+N` (global) | show / hide the panel (anywhere on the desktop) |
 | `Ctrl+N` | new note (new folder in the folder list) |
 | `Ctrl+F` | search |
 | `Esc` | stop editing, go back, hide |

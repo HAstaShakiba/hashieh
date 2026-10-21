@@ -31,6 +31,7 @@ DEFAULT_CONFIG = {
     "default_formatting": "markdown",
     "last_folder": None,
     "shortcuts": {},          # in-app shortcut overrides, see shortcuts.DEFAULT_APP
+    "defaults_applied": False,  # autostart + default global shortcut set up on first run
 }
 
 
