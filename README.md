@@ -1,6 +1,6 @@
 # Hashieh
 
-*Hashieh* (حاشیه, "margin") is a notes panel for Linux, Windows and macOS that lives on the edge of your screen. It
+*Hashieh* (حاشیه, "margin") is a **free, open-source SideNotes alternative for Windows, Linux and macOS**: a sticky-notes panel that lives on the edge of your screen. It
 has folders, colored note cards, light Markdown, tasks, color swatches, pictures and file links.
 It can import and export the notes and themes of
 [SideNotes](https://www.apptorium.com/sidenotes) for macOS, so you can move your notes from a Mac.

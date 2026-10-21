@@ -3,11 +3,26 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Hashieh — notes on the edge of your screen</title>
-  <meta name="description" content="Hashieh is a notes panel that lives on the edge of your screen, for Linux, Windows and macOS. Folders, colored cards, light Markdown, tasks and pictures. Imports SideNotes notes and themes.">
-  <meta property="og:title" content="Hashieh — notes on the edge of your screen">
-  <meta property="og:description" content="A docked notes panel for Linux, Windows and macOS that can import your SideNotes notes and themes.">
+  <title>Hashieh — free SideNotes alternative for Windows, Linux &amp; macOS</title>
+  <meta name="description" content="Free, open-source sticky notes side panel for Windows, Linux and macOS: a SideNotes alternative with folders, Markdown, tasks and a global shortcut.">
+  <meta name="keywords" content="SideNotes alternative, SideNotes for Windows, SideNotes for Linux, free notes app, sticky notes, side panel notes, markdown notes, open source">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://hastashakiba.github.io/hashieh/">
+  <meta name="theme-color" content="#3b6fd8">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Hashieh">
+  <meta property="og:url" content="https://hastashakiba.github.io/hashieh/">
+  <meta property="og:title" content="Hashieh — free SideNotes alternative for Windows, Linux &amp; macOS">
+  <meta property="og:description" content="A free, open-source notes panel on the edge of your screen. Folders, Markdown, tasks, a global shortcut, and SideNotes import.">
   <meta property="og:image" content="https://hastashakiba.github.io/hashieh/screenshot.png">
+  <meta property="og:image:alt" content="Hashieh notes panel with colored note cards in light and dark mode">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Hashieh — free SideNotes alternative for Windows, Linux &amp; macOS">
+  <meta name="twitter:description" content="A free, open-source notes panel on the edge of your screen.">
+  <meta name="twitter:image" content="https://hastashakiba.github.io/hashieh/screenshot.png">
+  <link rel="sitemap" type="application/xml" href="sitemap.xml">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "SoftwareApplication", "name": "Hashieh", "alternateName": "حاشیه", "description": "Free, open-source sticky notes side panel for Windows, Linux and macOS: a SideNotes alternative with folders, Markdown, tasks and a global shortcut.", "applicationCategory": "ProductivityApplication", "applicationSubCategory": "Note-taking", "operatingSystem": "Windows 10, Windows 11, macOS 11+, Linux (Ubuntu, Debian)", "softwareVersion": "0.2.0", "license": "https://opensource.org/licenses/MIT", "isAccessibleForFree": true, "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "downloadUrl": "https://github.com/HAstaShakiba/hashieh/releases/latest", "url": "https://hastashakiba.github.io/hashieh/", "image": "https://hastashakiba.github.io/hashieh/screenshot.png", "screenshot": "https://hastashakiba.github.io/hashieh/screenshot.png", "codeRepository": "https://github.com/HAstaShakiba/hashieh", "author": {"@type": "Person", "name": "HAstaShakiba", "url": "https://github.com/HAstaShakiba"}, "keywords": "SideNotes alternative, SideNotes for Windows, SideNotes for Linux, free notes app, sticky notes, side panel notes, markdown notes, desktop notes"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Is there a SideNotes app for Windows or Linux?", "acceptedAnswer": {"@type": "Answer", "text": "SideNotes itself is only available for macOS. Hashieh is a free, open-source notes panel in the same spirit for Windows, Linux and macOS: notes in folders on the edge of your screen, opened with one shortcut."}}, {"@type": "Question", "name": "Is Hashieh free?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Hashieh is completely free and open source under the MIT license. There are no paid tiers, accounts or ads."}}, {"@type": "Question", "name": "Can I import my notes from SideNotes?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Hashieh reads SideNotes data (SideNotes.sqlite, data.json or a .snbackup), including folders, note colors, tasks and pictures, and it can use SideNotes .sntheme themes."}}, {"@type": "Question", "name": "How do I open the notes panel?", "acceptedAnswer": {"@type": "Answer", "text": "Press Ctrl+Alt+N on Windows, Cmd+Ctrl+N on macOS or Super+Ctrl+N on Linux, or click the small handle on the screen edge. You can change the shortcut in the settings."}}, {"@type": "Question", "name": "Which systems does Hashieh support?", "acceptedAnswer": {"@type": "Answer", "text": "Windows 10 and 11 (x64), macOS 11 or later on Apple Silicon, and Linux with GNOME, with a .deb package for Ubuntu and Debian."}}, {"@type": "Question", "name": "Does Hashieh sync with iCloud?", "acceptedAnswer": {"@type": "Answer", "text": "No. Notes are stored locally in one SQLite file. You can export to JSON, and you can move notes from a Mac by importing the SideNotes database."}}]}</script>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <style>
     :root {
@@ -128,6 +143,20 @@
     ol.flow { padding-left: 20px; margin: 0; }
     ol.flow li { margin: 0 0 10px; }
 
+    .card.dl { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+    .card.dl h3 { margin: 0; }
+    .card.dl.current { border-color: var(--accent); box-shadow: var(--shadow); }
+    .dl-alt { font-weight: 600; font-size: 14px; }
+    .dl-name { margin: 0; font-size: 13px; }
+    details.faq { background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+                  padding: 4px 18px; margin: 0 0 10px; }
+    details.faq summary { cursor: pointer; list-style: none; }
+    details.faq summary::-webkit-details-marker { display: none; }
+    details.faq summary h3 { display: inline; font-size: 17px; margin: 0; line-height: 3; }
+    details.faq summary::before { content: "＋"; color: var(--accent); margin-inline-end: 10px; font-weight: 700; }
+    details.faq[open] summary::before { content: "－"; }
+    details.faq p { margin: 0 0 14px; color: var(--muted); }
+    #fa { font-family: Vazirmatn, Tahoma, system-ui, sans-serif; }
     footer { padding: 36px 0 48px; color: var(--muted); font-size: 14px; border-top: 1px solid var(--border); }
     footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
 
@@ -148,8 +177,10 @@
     <nav>
       <a class="brand" href="./"><img src="icon.svg" alt="">Hashieh</a>
       <div class="nav-links">
+        <a class="hide-sm" href="#download">Download</a>
         <a class="hide-sm" href="#features">Features</a>
         <a class="hide-sm" href="#install">Install</a>
+        <a class="hide-sm" href="#faq">FAQ</a>
         <a href="https://github.com/HAstaShakiba/hashieh">GitHub</a>
       </div>
     </nav>
@@ -158,8 +189,9 @@
       <div>
         <span class="eyebrow">Free &amp; open source · Linux · Windows · macOS</span>
         <h1>Hashieh<span class="fa" lang="fa">حاشیه</span></h1>
-        <p class="lead">A notes panel that lives on the edge of your screen. Jot things down, tick off
-          tasks and keep snippets one shortcut away. You can bring your notes over from SideNotes on the Mac.</p>
+        <p class="lead">A free, open-source notes panel that lives on the edge of your screen, on Windows, Linux
+          and macOS. Jot things down, tick off tasks and keep snippets one shortcut away. It works like SideNotes,
+          and it can import your SideNotes notes.</p>
         <div class="actions">
           <a class="btn btn-primary" id="download" href="https://github.com/HAstaShakiba/hashieh/releases/latest">
             ⬇ <span id="download-label">Download</span></a>
@@ -169,11 +201,38 @@
           · <a href="https://github.com/HAstaShakiba/hashieh/releases/latest">All downloads</a></p>
       </div>
       <div class="shot">
-        <img src="screenshot.png" width="570" height="675"
+        <img src="screenshot.png" width="570" height="675" fetchpriority="high"
              alt="Hashieh panel showing colored note cards with tasks, color swatches and Markdown, in light and dark mode">
       </div>
     </header>
   </div>
+
+  <section id="download">
+    <div class="wrap">
+      <h2>Download</h2>
+      <p class="section-lead">Free for Windows, macOS and Linux. Version <span class="dl-version">0.2.0</span> ·
+        <a href="https://github.com/HAstaShakiba/hashieh/releases/latest">release notes &amp; checksums</a></p>
+      <div class="grid">
+        <div class="card dl" data-os="windows">
+          <h3>Windows 10 / 11</h3>
+          <a class="btn btn-primary" data-suffix="-windows-x64-setup.exe" href="https://github.com/HAstaShakiba/hashieh/releases/download/v0.2.0/Hashieh-0.2.0-windows-x64-setup.exe">⬇ Installer (x64)</a>
+          <a class="dl-alt" data-suffix="-windows-x64.zip" href="https://github.com/HAstaShakiba/hashieh/releases/download/v0.2.0/Hashieh-0.2.0-windows-x64.zip">Portable .zip</a>
+          <p class="dl-name"><code data-name-for="-windows-x64-setup.exe">Hashieh-0.2.0-windows-x64-setup.exe</code></p>
+        </div>
+        <div class="card dl" data-os="mac">
+          <h3>macOS 11+</h3>
+          <a class="btn btn-primary" data-suffix="-macos-arm64.dmg" href="https://github.com/HAstaShakiba/hashieh/releases/download/v0.2.0/Hashieh-0.2.0-macos-arm64.dmg">⬇ Apple Silicon .dmg</a>
+          <p class="dl-name"><code data-name-for="-macos-arm64.dmg">Hashieh-0.2.0-macos-arm64.dmg</code></p>
+        </div>
+        <div class="card dl" data-os="linux">
+          <h3>Ubuntu / Debian</h3>
+          <a class="btn btn-primary" data-suffix="_all.deb" href="https://github.com/HAstaShakiba/hashieh/releases/download/v0.2.0/hashieh_0.2.0_all.deb">⬇ .deb package</a>
+          <a class="dl-alt" data-suffix=".tar.gz" href="https://github.com/HAstaShakiba/hashieh/releases/download/v0.2.0/hashieh-0.2.0.tar.gz">Source .tar.gz</a>
+          <p class="dl-name"><code data-name-for="_all.deb">hashieh_0.2.0_all.deb</code></p>
+        </div>
+      </div>
+    </div>
+  </section>
 
   <section id="features">
     <div class="wrap">
@@ -277,9 +336,69 @@ cd hashieh
     </div>
   </section>
 
+  <section id="alternative">
+    <div class="wrap">
+      <h2>A free SideNotes alternative for Windows and Linux</h2>
+      <p class="section-lead">SideNotes is a much-loved notes sidebar for the Mac. Hashieh brings the same idea to
+        <strong>Windows</strong> and <strong>Linux</strong>, and runs on macOS too: a panel that slides in from the
+        screen edge, with folders, colored notes, Markdown, tasks and pictures. It's free and open source, with no
+        account and no subscription.</p>
+      <div class="grid">
+        <div class="card"><h3>Same workflow</h3><p>Folders of notes on the screen edge, one global shortcut to show
+          or hide them, and notes that save as you type.</p></div>
+        <div class="card"><h3>Your notes come along</h3><p>Import SideNotes data and themes. Export everything to
+          JSON whenever you want.</p></div>
+        <div class="card"><h3>Free forever</h3><p>MIT-licensed, with the source on GitHub. No account, no tracking,
+          and your notes stay on your computer.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq">
+    <div class="wrap">
+      <h2>Questions</h2>
+        <details class="faq" open>
+          <summary><h3>Is there a SideNotes app for Windows or Linux?</h3></summary>
+          <p>SideNotes itself is only available for macOS. Hashieh is a free, open-source notes panel in the same spirit for Windows, Linux and macOS: notes in folders on the edge of your screen, opened with one shortcut.</p>
+        </details>
+        <details class="faq">
+          <summary><h3>Is Hashieh free?</h3></summary>
+          <p>Yes. Hashieh is completely free and open source under the MIT license. There are no paid tiers, accounts or ads.</p>
+        </details>
+        <details class="faq">
+          <summary><h3>Can I import my notes from SideNotes?</h3></summary>
+          <p>Yes. Hashieh reads SideNotes data (SideNotes.sqlite, data.json or a .snbackup), including folders, note colors, tasks and pictures, and it can use SideNotes .sntheme themes.</p>
+        </details>
+        <details class="faq">
+          <summary><h3>How do I open the notes panel?</h3></summary>
+          <p>Press Ctrl+Alt+N on Windows, Cmd+Ctrl+N on macOS or Super+Ctrl+N on Linux, or click the small handle on the screen edge. You can change the shortcut in the settings.</p>
+        </details>
+        <details class="faq">
+          <summary><h3>Which systems does Hashieh support?</h3></summary>
+          <p>Windows 10 and 11 (x64), macOS 11 or later on Apple Silicon, and Linux with GNOME, with a .deb package for Ubuntu and Debian.</p>
+        </details>
+        <details class="faq">
+          <summary><h3>Does Hashieh sync with iCloud?</h3></summary>
+          <p>No. Notes are stored locally in one SQLite file. You can export to JSON, and you can move notes from a Mac by importing the SideNotes database.</p>
+        </details>
+    </div>
+  </section>
+
+  <section id="fa" lang="fa" dir="rtl">
+    <div class="wrap">
+      <h2>حاشیه؛ جایگزین رایگان SideNotes برای ویندوز و لینوکس</h2>
+      <p class="section-lead">حاشیه یک برنامه‌ی یادداشت رایگان و متن‌باز است که مثل SideNotes در کنار صفحه‌ی نمایش
+        قرار می‌گیرد و روی ویندوز، لینوکس و مک کار می‌کند. یادداشت‌ها را در پوشه‌ها با رنگ‌بندی، Markdown،
+        چک‌لیست و تصویر نگه دارید و با یک کلید میانبر باز و بسته‌اش کنید. یادداشت‌ها و تم‌های SideNotes را هم
+        می‌توانید وارد کنید.</p>
+      <p><a class="btn btn-primary" href="https://github.com/HAstaShakiba/hashieh/releases/latest">دانلود رایگان</a></p>
+    </div>
+  </section>
+
   <footer>
     <div class="wrap">
-      <span>Hashieh is an independent, unofficial project. It is not affiliated with Apptorium, the makers of SideNotes.</span>
+      <span>Hashieh is an independent, unofficial project. SideNotes is a trademark of Apptorium; Hashieh is not
+        affiliated with or endorsed by Apptorium.</span>
       <span>MIT license · <a href="https://github.com/HAstaShakiba/hashieh">Source on GitHub</a></span>
     </div>
   </footer>
@@ -295,11 +414,23 @@ cd hashieh
       linux: { test: n => n.endsWith(".deb"), label: "Download for Ubuntu / Debian" },
     }[os];
     if (pick) document.getElementById("download-label").textContent = pick.label;
+    if (os) document.querySelector(`.card.dl[data-os="${os}"]`)?.classList.add("current");
     (async () => {
       try {
         const res = await fetch("https://api.github.com/repos/HAstaShakiba/hashieh/releases/latest");
-        if (!res.ok || !pick) return;
+        if (!res.ok) return;
         const release = await res.json();
+        // Keep every per-OS link pointing at the newest release.
+        for (const link of document.querySelectorAll("[data-suffix]")) {
+          const asset = (release.assets || []).find(a => a.name.endsWith(link.dataset.suffix));
+          if (asset) link.href = asset.browser_download_url;
+        }
+        for (const code of document.querySelectorAll("[data-name-for]")) {
+          const asset = (release.assets || []).find(a => a.name.endsWith(code.dataset.nameFor));
+          if (asset) code.textContent = asset.name;
+        }
+        for (const el of document.querySelectorAll(".dl-version")) el.textContent = release.tag_name.replace(/^v/, "");
+        if (!pick) return;
         const asset = (release.assets || []).find(a => pick.test(a.name));
         if (asset) {
           document.getElementById("download").href = asset.browser_download_url;
