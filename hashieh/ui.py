@@ -8,6 +8,7 @@ inline) and switch to raw text editing when clicked.
 
 import math
 import sys
+import threading
 import time
 from pathlib import Path
 from typing import Optional
@@ -20,7 +21,7 @@ gi.require_version("Gdk", "3.0")
 gi.require_version("GdkPixbuf", "2.0")
 from gi.repository import Gdk, GdkPixbuf, Gio, GLib, Gtk, Pango  # noqa: E402
 
-from . import APP_ID, APP_NAME, interop, markup, render, shortcuts, theme  # noqa: E402
+from . import APP_ID, APP_NAME, interop, markup, render, shortcuts, sync, theme  # noqa: E402
 from .model import NOTE_COLORS, TEXT_FORMATTINGS, Folder, Note, Store  # noqa: E402
 from .paths import (DATA_DIR, DB_PATH, autostart_enabled, load_config, save_config,  # noqa: E402
                     set_autostart)
@@ -31,6 +32,7 @@ FORMAT_LABELS = {"standard": "Standard", "markdown": "Markdown", "monospaced": "
 PLACEHOLDER = "Some new idea?"
 OUTER_MARGIN = 10   # gap between the screen edge / window edge and the floating cards
 CARD_PAD_X = 18
+SYNC_INTERVAL = 300  # seconds between automatic syncs while signed in
 WELCOME = """# Welcome to Hashieh
 This panel lives on the edge of your screen. Notes support a small Markdown subset:
 **bold**, *italic*, ~~strike~~, ==underline==, ::marked::, `code`
@@ -1301,6 +1303,24 @@ class MainWindow(Gtk.ApplicationWindow):
         self.folder_list.show_all()
         self.status_label.set_text(f"{len(folders)} folder{'s' if len(folders) != 1 else ''}")
 
+    def refresh_from_store(self):
+        """Show changes that sync made to the store. Waits while a note is being edited."""
+        if self.app.window is not self:
+            return False
+        if any(card.editing for card in self.cards):
+            return True  # called from a timeout: try again later
+        if self.folder:
+            folder = self.store.folder(self.folder.id)
+            if folder is None:
+                self.show_folders()
+                return False
+            self.folder = folder
+            self.title_label.set_text(folder.name or "Untitled")
+            self.reload_notes()
+        else:
+            self.reload_folders()
+        return False
+
     def open_folder(self, folder: Folder, focus_note: Optional[str] = None):
         self.flush_all()
         self.folder = folder
@@ -1506,6 +1526,7 @@ class MainWindow(Gtk.ApplicationWindow):
             _menu_item(("✓ " if self.cfg["show_handle"] else "") + "Show edge handle when hidden",
                        self._set_cfg, "show_handle", not self.cfg["show_handle"]),
         ]))
+        menu.append(_submenu("Google sync", self._sync_items()))
         menu.append(Gtk.SeparatorMenuItem())
         menu.append(_menu_item(("✓ " if autostart_enabled() else "") + "Start at login",
                                lambda: set_autostart(not autostart_enabled(), shortcuts.launcher())))
@@ -1516,6 +1537,27 @@ class MainWindow(Gtk.ApplicationWindow):
         menu.append(_menu_item("Hide (Esc)", self.app.hide_panel))
         menu.append(_menu_item("Quit (Ctrl+Q)", self.app.quit_app))
         _popup(menu, button)
+
+    def _sync_items(self) -> list:
+        app = self.app
+        if not sync.configured():
+            return [_menu_item("Not available in this build", None, sensitive=False)]
+        if app.account is None:
+            return [_menu_item("Waiting for the browser…" if app.signing_in else "Sign in with Google…",
+                               app.sign_in, sensitive=not app.signing_in)]
+        if app.syncing:
+            status = "Syncing…"
+        elif app.sync_error:
+            status = "Last sync failed: " + app.sync_error
+        elif app.last_sync:
+            status = "Last synced " + time.strftime("%H:%M", time.localtime(app.last_sync))
+        else:
+            status = "Not synced yet"
+        return [_menu_item(app.account.email, None, sensitive=False),
+                _menu_item(status, None, sensitive=False),
+                Gtk.SeparatorMenuItem(),
+                _menu_item("Sync now", app.start_sync, False, sensitive=not app.syncing),
+                _menu_item("Sign out", app.sign_out)]
 
     def _set_cfg(self, key, value):
         self.cfg[key] = value
@@ -1654,6 +1696,10 @@ class HashiehApp(Gtk.Application):
         self._ipc = None
         self.selftest_dir = selftest_dir
         self.cfg = load_config()
+        self.account: Optional[sync.Account] = None
+        self.syncing = self.signing_in = False
+        self.last_sync = 0.0
+        self.sync_error = ""
         self.add_main_option("toggle", ord("t"), GLib.OptionFlags.NONE, GLib.OptionArg.NONE,
                              "Show or hide the panel", None)
         self.add_main_option("show", 0, GLib.OptionFlags.NONE, GLib.OptionArg.NONE, "Show the panel", None)
@@ -1672,6 +1718,8 @@ class HashiehApp(Gtk.Application):
             Gtk.Settings.get_default().set_property("gtk-xft-dpi", 96 * 1024)
         shortcuts.migrate_legacy()
         self.store = Store(DB_PATH)
+        if sync.configured() and not self.selftest_dir:
+            self.account = sync.Account.load()
         if self.store.is_empty():
             folder = self.store.create_folder("Notes")
             self.store.create_note(folder.id, WELCOME, "markdown")
@@ -1695,6 +1743,8 @@ class HashiehApp(Gtk.Application):
             if self.selftest_dir:
                 GLib.idle_add(self._run_selftest)
                 return
+            GLib.timeout_add_seconds(3, lambda: self.start_sync() and False)
+            GLib.timeout_add_seconds(SYNC_INTERVAL, lambda: self.start_sync() or True)
         if opts.get("hide"):
             self.hide_panel()
         elif opts.get("toggle") and not first and self.window.get_visible():
@@ -1747,6 +1797,85 @@ class HashiehApp(Gtk.Application):
                 self.handle = EdgeHandle(self)
             self.handle.show_all()
             self.handle.place()
+        self.start_sync()
+
+    # Google sync: network work runs in a thread with its own database connection ---------------
+    def start_sync(self, quiet: bool = True):
+        if self.account is None or self.syncing:
+            return
+        self.syncing = True
+        if self.window:
+            self.window.flush_all()
+        account = self.account
+
+        def work():
+            store = Store(DB_PATH)
+            try:
+                result, error = sync.sync(store, sync.Drive(account)), None
+            except sync.SyncError as e:
+                result, error = None, e
+            except Exception as e:  # report anything unexpected instead of losing the thread
+                result, error = None, sync.SyncError(f"Sync failed: {e}")
+            finally:
+                store.close()
+            GLib.idle_add(self._sync_done, result, error, quiet)
+        threading.Thread(target=work, daemon=True).start()
+
+    def _sync_done(self, result, error, quiet: bool):
+        self.syncing = False
+        if error:
+            self.sync_error = str(error)
+            if isinstance(error, sync.AuthError):
+                sync.Account.forget()
+                self.account = None
+            if self.window and (not quiet or isinstance(error, sync.AuthError)):
+                _info(self.window, str(error), error=True)
+            elif self.window:
+                self.window.toast("Sync failed")
+            return False
+        self.sync_error = ""
+        self.last_sync = time.time()
+        if result.received or result.pictures_received:
+            if self.window and self.window.refresh_from_store():
+                GLib.timeout_add_seconds(2, self.window.refresh_from_store)
+        if self.window and not quiet:
+            self.window.toast(f"Synced: {result}")
+        return False
+
+    def sign_in(self):
+        if self.signing_in:
+            return
+        self.signing_in = True
+        if self.window:
+            self.window.toast("Continue in your browser…")
+
+        def work():
+            try:
+                account, error = sync.sign_in(lambda url: GLib.idle_add(_open_uri, url)), None
+            except sync.SyncError as e:
+                account, error = None, e
+            GLib.idle_add(self._signed_in, account, error)
+        threading.Thread(target=work, daemon=True).start()
+
+    def _signed_in(self, account, error):
+        self.signing_in = False
+        if error:
+            if self.window:
+                _info(self.window, str(error), error=True)
+            return False
+        self.account = account
+        self.sync_error = ""
+        self.start_sync(quiet=False)
+        return False
+
+    def sign_out(self):
+        if not _confirm(self.window, f"Stop syncing with {self.account.email}?\n"
+                                     "Your notes stay on this computer and in Google Drive."):
+            return
+        account, self.account = self.account, None
+        self.last_sync, self.sync_error = 0.0, ""
+        account.forget()
+        threading.Thread(target=account.revoke, daemon=True).start()
 
     def _watch_appearance(self):
         source = Gio.SettingsSchemaSource.get_default()

@@ -56,7 +56,8 @@ Open the panel with your shortcut, or click the small handle on the screen edge.
 * Paste or drop an image to attach it. Drop any other file to link to it.
 * Hover over a note to show its toolbar: formatting, sharing, color, moving, copying and deleting.
 * Right-click a folder to rename, pin, color or delete it.
-* Open **⚙** for theme, light/dark mode, screen side, *Start at login* and *Keyboard shortcuts…*.
+* Open **⚙** for theme, light/dark mode, screen side, *Start at login*, *Keyboard shortcuts…* and
+  *Google sync*.
 
 Notes support `# headings`, `**bold**`, `*italic*`, `~~strike~~`, `==underline==`,
 `::marked::`, `` `code` ``, code blocks, `> quotes`, lists, `[ ]`/`[x]` tasks and `#rrggbb`
@@ -85,6 +86,7 @@ hashieh --new-note "text"            add a note to the current folder
 hashieh --new-note-from-clipboard
 hashieh import PATH                  import SideNotes data (see below)
 hashieh export DIR                   export data.json + images/
+hashieh sync [login|logout|status]   sync with Google Drive (signs in first if needed)
 hashieh themes install PATH          install .sntheme files (file, folder or SideNotes.app)
 hashieh shortcut toggle '<Super><Control>n'
 ```
@@ -102,6 +104,22 @@ iCloud sync isn't available on Linux, so you move notes as files:
 Importing doesn't change the source file, and you can import again later: notes are matched by ID,
 and the newer copy wins. To use your SideNotes themes too, run
 `hashieh themes install /path/to/SideNotes.app`.
+
+## Sync with Google
+
+Open ⚙ ▸ Google sync ▸ *Sign in with Google…* and allow Hashieh in your browser. Do the same on
+each computer. Hashieh then syncs when it starts, every 5 minutes, when you hide the panel, and when
+you click *Sync now*.
+
+* Notes, folders and pictures go to Hashieh's own hidden folder in your Google Drive. Hashieh can't
+  see your other Drive files, and you won't see this folder in Drive. *Manage apps* in Drive's
+  settings can delete it.
+* The first sync merges what each computer has. After that, when the same note changed on two
+  computers, the later change wins. A deleted note stays deleted unless it was edited later
+  somewhere else.
+* Keep your clocks right: changes are compared by time. A computer offline for more than 180 days
+  may bring back notes deleted meanwhile.
+* *Sign out* stops syncing on that computer. Your notes stay on it and in Drive.
 
 ## Platform notes
 
@@ -123,7 +141,7 @@ XWayland so it can stay on the screen edge and on top of other windows. If you t
 | | Linux | Windows | macOS |
 |---|---|---|---|
 | Notes (`notes.db`), themes | `~/.local/share/hashieh` | `%LOCALAPPDATA%\Hashieh` | `~/Library/Application Support/Hashieh` |
-| Settings (`config.json`) | `~/.config/hashieh` | `%APPDATA%\Hashieh` | `~/Library/Application Support/Hashieh` |
+| Settings (`config.json`), Google sign-in (`google-account.json`) | `~/.config/hashieh` | `%APPDATA%\Hashieh` | `~/Library/Application Support/Hashieh` |
 
 Notes are a single SQLite file, with pictures stored inside it.
 
@@ -137,7 +155,8 @@ worked out from the shipped macOS app for interoperability. Some details are edu
 * File links created on a Mac may point to paths that don't exist on Linux.
 * The internal layout of `.snbackup` files hasn't been confirmed.
 
-Not implemented yet: reminders, locked notes, sync, and syntax highlighting by language.
+Not implemented yet: reminders, locked notes, iCloud sync with SideNotes, and syntax
+highlighting by language.
 
 ## Development
 
@@ -145,6 +164,13 @@ Not implemented yet: reminders, locked notes, sync, and syntax highlighting by l
 python3 -m unittest discover -s tests -t .   # tests (GNOME settings use an in-memory backend)
 packaging/build.sh                           # dist/: .tar.gz, .deb and SHA256SUMS
 ```
+
+Google sync needs an OAuth client. In the [Google Cloud console](https://console.cloud.google.com/),
+enable the *Google Drive API*, set up the OAuth consent screen with the
+`https://www.googleapis.com/auth/drive.appdata` scope, and create an OAuth client ID of type
+*Desktop app*. Put its ID and secret in `CLIENT_ID` and `CLIENT_SECRET` in `hashieh/sync.py`, or set
+`HASHIEH_GOOGLE_CLIENT_ID` and `HASHIEH_GOOGLE_CLIENT_SECRET` when running. Without them the sync
+menu says it isn't available.
 
 CI runs the tests and builds the packages on Ubuntu 22.04 and 24.04 for every push and pull request.
 The Windows and macOS builds (PyInstaller, `packaging/hashieh.spec`) run on their own runners,

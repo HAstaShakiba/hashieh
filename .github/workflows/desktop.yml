@@ -33,7 +33,7 @@ jobs:
           update: false
           install: zip
           pacboy: >-
-            gtk3:p python:p python-gobject:p python-cairo:p pyinstaller:p
+            gtk3:p python:p python-gobject:p python-cairo:p python-certifi:p pyinstaller:p
             adwaita-icon-theme:p librsvg:p
 
       - name: Unit tests
@@ -93,7 +93,7 @@ jobs:
               break
             fi
           done
-          venv/bin/python -m pip install --quiet pyinstaller
+          venv/bin/python -m pip install --quiet pyinstaller certifi
 
       - name: Unit tests
         run: venv/bin/python -m unittest discover -s tests -t . -v

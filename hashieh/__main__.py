@@ -6,6 +6,7 @@
     hashieh --new-note-from-clipboard
     hashieh import PATH                  import data.json / SideNotes.sqlite / .snbackup / folder
     hashieh export DIR                   export data.json + images/ to DIR
+    hashieh sync [login|logout|status]   sync notes with Google Drive (signs in first if needed)
     hashieh themes install PATH          install .sntheme files (file, folder, or SideNotes.app)
     hashieh themes list
     hashieh shortcut list
@@ -50,6 +51,8 @@ def _cli(argv) -> int:
         return 0
     if cmd == "shortcut":
         return _shortcut_cli(argv[1:])
+    if cmd == "sync" and len(argv) <= 2:
+        return _sync_cli(argv[1:])
     if cmd == "themes" and argv[1:2] == ["list"]:
         for name, path in theme.available_themes().items():
             print(f"{name}\t{path or '(built-in)'}")
@@ -96,6 +99,52 @@ def _shortcut_cli(args) -> int:
         shortcuts.free(c, accel)
     shortcuts.set_global(action, accel)
     print(f"{action}: {shortcuts.label(accel)}")
+    return 0
+
+
+def _sync_cli(args) -> int:
+    import webbrowser
+
+    from . import sync
+    from .model import Store
+    from .paths import DB_PATH
+
+    if not sync.configured():
+        print("Google sync isn't set up in this build of Hashieh.", file=sys.stderr)
+        return 1
+    account = sync.Account.load()
+    action = args[0] if args else "now"
+    if action == "status":
+        print(f"Signed in as {account.email}" if account else "Not signed in")
+        return 0
+    if action == "logout":
+        if account:
+            account.forget()
+            account.revoke()
+        print("Signed out. Your notes stay on this computer and in Google Drive.")
+        return 0
+    if action not in ("now", "login"):
+        print(__doc__, file=sys.stderr)
+        return 2
+
+    def open_url(url):
+        print(f"Sign in to Google in your browser. If it doesn't open, visit:\n{url}")
+        webbrowser.open(url)
+
+    try:
+        if account is None or action == "login":
+            account = sync.sign_in(open_url)
+            print(f"Signed in as {account.email}")
+        store = Store(DB_PATH)
+        try:
+            print(f"Synced: {sync.sync(store, sync.Drive(account))}")
+        finally:
+            store.close()
+    except sync.SyncError as e:
+        if isinstance(e, sync.AuthError):
+            sync.Account.forget()
+        print(e, file=sys.stderr)
+        return 1
     return 0
 
 

@@ -12,7 +12,8 @@ is_windows = sys.platform == "win32"
 a = Analysis(
     [str(root / "packaging/entry.py")],
     pathex=[str(root)],
-    hiddenimports=["hashieh.ui", "hashieh.hotkeys", "hashieh.ipc"],
+    # certifi: CA certificates for Google sync; the bundles don't see the system's.
+    hiddenimports=["hashieh.ui", "hashieh.hotkeys", "hashieh.ipc", "certifi"],
     hooksconfig={
         "gi": {
             "icons": ["Adwaita", "hicolor"],
