@@ -168,9 +168,9 @@ packaging/build.sh                           # dist/: .tar.gz, .deb and SHA256SU
 Google sync needs an OAuth client. In the [Google Cloud console](https://console.cloud.google.com/),
 enable the *Google Drive API*, set up the OAuth consent screen with the
 `https://www.googleapis.com/auth/drive.appdata` scope, and create an OAuth client ID of type
-*Desktop app*. Put its ID and secret in `CLIENT_ID` and `CLIENT_SECRET` in `hashieh/sync.py`, or set
-`HASHIEH_GOOGLE_CLIENT_ID` and `HASHIEH_GOOGLE_CLIENT_SECRET` when running. Without them the sync
-menu says it isn't available.
+*Desktop app*. Hashieh's own client is in `CLIENT_ID` and `CLIENT_SECRET` in `hashieh/sync.py`; to
+use another one, change them there or set `HASHIEH_GOOGLE_CLIENT_ID` and
+`HASHIEH_GOOGLE_CLIENT_SECRET` when running. Google treats a desktop client's secret as public.
 
 CI runs the tests and builds the packages on Ubuntu 22.04 and 24.04 for every push and pull request.
 The Windows and macOS builds (PyInstaller, `packaging/hashieh.spec`) run on their own runners,

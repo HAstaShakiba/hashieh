@@ -34,8 +34,8 @@ from .paths import CONFIG_DIR, IS_WINDOWS
 
 # OAuth client of type "Desktop app" from the Google Cloud console, with the Drive API
 # enabled. Google treats a desktop client's secret as public, so it ships in the app.
-CLIENT_ID = os.environ.get("HASHIEH_GOOGLE_CLIENT_ID", "")
-CLIENT_SECRET = os.environ.get("HASHIEH_GOOGLE_CLIENT_SECRET", "")
+CLIENT_ID = os.environ.get("HASHIEH_GOOGLE_CLIENT_ID", "255350379631-f39vjn0o4uve2rni2vfi1bkmjh5lt6q5.apps.googleusercontent.com")
+CLIENT_SECRET = os.environ.get("HASHIEH_GOOGLE_CLIENT_SECRET", "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")
 DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.appdata"
 SCOPES = "openid email " + DRIVE_SCOPE
 
