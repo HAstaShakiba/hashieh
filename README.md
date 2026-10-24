@@ -1,7 +1,8 @@
 # Hashieh
 
 *Hashieh* (حاشیه, "margin") is a **free, open-source SideNotes alternative for Windows, Linux and macOS**: a sticky-notes panel that lives on the edge of your screen. It
-has folders, colored note cards, light Markdown, tasks, color swatches, pictures and file links.
+has folders, colored note cards, light Markdown, tasks, color swatches, pictures and file links,
+and it can sync your notes between computers through your Google Drive.
 It can import and export the notes and themes of
 [SideNotes](https://www.apptorium.com/sidenotes) for macOS, so you can move your notes from a Mac.
 
